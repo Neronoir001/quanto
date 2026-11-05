@@ -82,6 +82,20 @@ export default function Accueil() {
         />
       </section>
 
+      <section className="rounded-3xl border border-dore bg-dore-fond p-6 shadow-sm">
+        <p className="text-sm font-semibold tracking-widest text-sauge uppercase">Nouveau · phase 1</p>
+        <h2 className="mt-1 font-serif text-2xl font-semibold">Le calculateur</h2>
+        <p className="mt-2 text-texte-doux">
+          Essayez le moteur de recalcul sur un fondant au chocolat : changez le nombre de personnes ou la taille du moule.
+        </p>
+        <a
+          href="#/calculateur"
+          className="mt-4 inline-block rounded-full bg-primaire px-6 py-3 font-medium text-sur-primaire transition hover:opacity-90 active:scale-[0.98]"
+        >
+          Essayer le calculateur
+        </a>
+      </section>
+
       <section className="rounded-3xl border border-bord bg-surface p-6 shadow-sm">
         <h2 className="font-serif text-2xl font-semibold">Test de synchronisation Wi-Fi</h2>
         <p className="mt-2 text-texte-doux">
