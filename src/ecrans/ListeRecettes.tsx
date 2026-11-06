@@ -1,4 +1,4 @@
-import { Heart, Import, LayoutGrid, List, Plus, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
+import { Heart, Import, LayoutGrid, Library, List, Plus, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactNode, useMemo, useState } from 'react'
 import { Link } from 'wouter'
@@ -18,6 +18,7 @@ import { construireIndex, type Criteres, CRITERES_VIDES, filtrerRecettes, tousLe
 import { base } from '../donnees/base'
 import { ajouterExemples } from '../donnees/exemples'
 import { useConsultations, useRecettes } from '../donnees/hooks'
+import { useCollections } from '../donnees/collections'
 import { basculerFavori } from '../donnees/recettes'
 import { useMemorise } from '../lib/stockage'
 
@@ -38,6 +39,8 @@ export default function ListeRecettes() {
   const [criteres, setCriteres] = useMemorise<Criteres>('quanto.criteres', CRITERES_VIDES, 'session')
   const [affichage, setAffichage] = useMemorise('quanto.affichage', { mode: 'grille' as 'grille' | 'liste' })
   const [filtresOuverts, setFiltresOuverts] = useState(false)
+  const carnets = useCollections()
+  const carnetActif = carnets?.find((c) => c.id === criteres.carnet)
 
   const index = useMemo(() => construireIndex(recettes ?? []), [recettes])
   const tags = useMemo(() => tousLesTags(recettes ?? []), [recettes])
@@ -66,9 +69,12 @@ export default function ListeRecettes() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-serif text-4xl font-semibold">Mes recettes</h1>
+          <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold">
+            {carnetActif && <span className="size-4 rounded-full" style={{ background: carnetActif.couleur }} aria-hidden="true" />}
+            {carnetActif?.nom ?? 'Mes recettes'}
+          </h1>
           <p className="mt-1 text-texte-doux">
-            {recettes.length} recette{recettes.length > 1 ? 's' : ''}
+            {carnetActif ? `${resultats.length} recette${resultats.length > 1 ? 's' : ''} dans ce carnet` : `${recettes.length} recette${recettes.length > 1 ? 's' : ''}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -137,6 +143,21 @@ export default function ListeRecettes() {
           )}
         </button>
       </div>
+
+      {/* Carnets */}
+      {!!carnets?.length && (
+        <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Carnets">
+          <Library className="size-5 shrink-0 text-texte-doux" aria-hidden="true" />
+          {carnets.map((c) => (
+            <Puce key={c.id} actif={criteres.carnet === c.id} onClick={() => maj({ carnet: criteres.carnet === c.id ? undefined : c.id })} taille="petite">
+              <span className="size-2.5 rounded-full" style={{ background: c.couleur }} aria-hidden="true" /> {c.nom}
+            </Puce>
+          ))}
+          <Link href="/carnets" className="shrink-0 px-2 text-sm font-medium text-primaire underline-offset-4 hover:underline">
+            Gérer
+          </Link>
+        </div>
+      )}
 
       {/* Catégories, toujours visibles */}
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Catégories">

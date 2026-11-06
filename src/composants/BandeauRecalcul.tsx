@@ -28,7 +28,7 @@ export default function BandeauRecalcul({ reference, cible, ratio, onCible, onMo
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: -12, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-      className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] z-20 px-3 pt-2 lg:hidden"
+      className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] z-20 px-3 pt-2 lg:hidden print:hidden"
       role="region"
       aria-label="Recalcul en cours"
     >

@@ -11,6 +11,8 @@ export interface Criteres {
   tempsMax?: number
   tags: string[]
   favorisSeulement: boolean
+  /** Identifiant du carnet affiché, s'il y en a un. */
+  carnet?: string
   tri: 'recentes' | 'alphabetique' | 'temps' | 'consultees'
 }
 
@@ -74,6 +76,7 @@ export function filtrerRecettes(
   if (c.tempsMax) resultat = resultat.filter((r) => tempsTotal(r) > 0 && tempsTotal(r) <= c.tempsMax!)
   if (c.tags.length) resultat = resultat.filter((r) => c.tags.every((t) => r.tags.includes(t)))
   if (c.favorisSeulement) resultat = resultat.filter((r) => r.favori)
+  if (c.carnet) resultat = resultat.filter((r) => r.collections.includes(c.carnet!))
 
   const trie = [...resultat]
   // Avec une recherche, les plus pertinentes d'abord.

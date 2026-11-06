@@ -1,7 +1,8 @@
 import { strFromU8, strToU8, unzipSync, zipSync, type Zippable } from 'fflate'
 import type { BaseQuanto } from '../donnees/base'
 import { obtenirAppareil } from '../donnees/appareil'
-import { appliquerPaquet, lirePaquet, paquetDepuis, recevoirPhoto, type ResultatFusion } from './echange'
+import type { Recette } from '../domaine/modele'
+import { appliquerPaquet, lirePaquet, type Paquet, paquetDepuis, recevoirPhoto, type ResultatFusion } from './echange'
 
 /**
  * Fichier du carnet (.zip) : sert au transfert entre appareils et à la sauvegarde.
@@ -35,6 +36,29 @@ function nomFichier(mode: ModeExport): string {
 export async function exporterCarnet(db: BaseQuanto, mode: ModeExport): Promise<{ fichier: File; recettes: number }> {
   const depuis = mode === 'nouveautes' ? ((await dateDernierEnvoi(db)) ?? 0) : 0
   const paquet = await paquetDepuis(db, depuis)
+  return { fichier: await fabriquerZip(db, paquet, mode, nomFichier(mode)), recettes: paquet.recettes.length }
+}
+
+/** Nom de fichier sans caractères interdits. */
+const nettoyerNom = (nom: string) => nom.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60) || 'recettes'
+
+/** Une sélection de recettes (une recette, un carnet) en fichier Quanto, avec leurs carnets et leurs photos. */
+export async function exporterRecettes(db: BaseQuanto, ids: string[], nom: string): Promise<File> {
+  const recettes = (await db.recettes.bulkGet(ids)).filter((r): r is Recette => !!r && r.supprimeLe === undefined)
+  const idsCarnets = new Set(recettes.flatMap((r) => r.collections))
+  const collections = (await db.collections.toArray()).filter((c) => idsCarnets.has(c.id) && c.supprimeLe === undefined)
+  const photos = [...new Set(recettes.map((r) => r.photoId).filter((id): id is string => !!id))]
+  return fabriquerZip(db, { recettes, collections, effacements: [], photos }, 'selection', `Quanto - ${nettoyerNom(nom)}.zip`)
+}
+
+/** Format JSON ouvert, sans les photos : pour garder une trace lisible ou migrer vers un autre logiciel. */
+export async function exporterJson(db: BaseQuanto, ids: string[], nom: string): Promise<File> {
+  const recettes = (await db.recettes.bulkGet(ids)).filter((r): r is Recette => !!r)
+  const json = { format: FORMAT, version: VERSION_FORMAT, cree: Date.now(), mode: 'selection', recettes, collections: [], effacements: [], photos: [] }
+  return new File([JSON.stringify(json, null, 2)], `Quanto - ${nettoyerNom(nom)}.json`, { type: 'application/json' })
+}
+
+async function fabriquerZip(db: BaseQuanto, paquet: Paquet, mode: string, nom: string): Promise<File> {
   const appareil = await obtenirAppareil(db)
 
   const contenu: Zippable = {}
@@ -62,8 +86,7 @@ export async function exporterCarnet(db: BaseQuanto, mode: ModeExport): Promise<
   contenu['quanto.json'] = strToU8(JSON.stringify(json, null, 1))
 
   const zip = zipSync(contenu, { level: 6 })
-  const fichier = new File([zip], nomFichier(mode), { type: 'application/zip' })
-  return { fichier, recettes: paquet.recettes.length }
+  return new File([zip], nom, { type: 'application/zip' })
 }
 
 /** À appeler une fois le fichier réellement partagé ou enregistré. */

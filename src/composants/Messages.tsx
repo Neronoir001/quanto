@@ -40,7 +40,7 @@ export function FournisseurMessages({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(8.75rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 px-4 md:bottom-24"
+        className="pointer-events-none fixed inset-x-0 print:hidden bottom-[calc(8.75rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 px-4 md:bottom-24"
       >
         <AnimatePresence>
           {messages.map((m) => (

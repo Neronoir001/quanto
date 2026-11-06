@@ -31,6 +31,7 @@ import { tousLesTags } from '../domaine/recherche'
 import { UNITES, type Famille } from '../domaine/unites'
 import { base } from '../donnees/base'
 import { useRecette, useRecettes } from '../donnees/hooks'
+import { useCollections } from '../donnees/collections'
 import { creerRecette, modifierRecette } from '../donnees/recettes'
 import { lireImport, oublierImport } from '../import/transfert'
 
@@ -162,6 +163,7 @@ function Formulaire({ recette }: { recette?: Recette }) {
     [toutes],
   )
   const tagsExistants = useMemo(() => tousLesTags(toutes ?? []), [toutes])
+  const carnets = useCollections()
 
   // Sauvegarde automatique du brouillon, une seconde après la dernière frappe.
   const minuteur = useRef<number | undefined>(undefined)
@@ -192,7 +194,7 @@ function Formulaire({ recette }: { recette?: Recette }) {
         await modifierRecette(base, recette.id, contenu)
         idFinal = recette.id
       } else {
-        const r = await creerRecette(base, { ...contenu, favori: false, collections: [], source: importe?.source ?? { type: 'saisie' } })
+        const r = await creerRecette(base, { ...contenu, favori: false, source: importe?.source ?? { type: 'saisie' } })
         idFinal = r.id
       }
       effacerBrouillon(cleBrouillon)
@@ -551,7 +553,7 @@ function Formulaire({ recette }: { recette?: Recette }) {
       </Section>
 
       {/* Notes et tags */}
-      <Section titre="Notes et conseils">
+      <Section titre="Notes, tags et carnets">
         <Champ libelle="Notes (facultatif)">
           {(p) => <textarea {...p} {...register('notes')} rows={4} placeholder="Astuces, variantes, accords…" className={champ} />}
         </Champ>
@@ -559,6 +561,27 @@ function Formulaire({ recette }: { recette?: Recette }) {
           <p className="mb-2 font-medium">Tags</p>
           <Controller control={control} name="tags" render={({ field }) => <ChampTags valeur={field.value} onChange={field.onChange} existants={tagsExistants} />} />
         </div>
+        {!!carnets?.length && (
+          <Controller
+            control={control}
+            name="collections"
+            render={({ field }) => (
+              <div role="group" aria-label="Carnets">
+                <p className="mb-2 font-medium">Carnets</p>
+                <div className="flex flex-wrap gap-2">
+                  {carnets.map((c) => {
+                    const actif = field.value.includes(c.id)
+                    return (
+                      <Puce key={c.id} actif={actif} taille="petite" onClick={() => field.onChange(actif ? field.value.filter((x) => x !== c.id) : [...field.value, c.id])}>
+                        <span className="size-2.5 rounded-full" style={{ background: c.couleur }} aria-hidden="true" /> {c.nom}
+                      </Puce>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          />
+        )}
       </Section>
 
       {/* Barre d'enregistrement */}

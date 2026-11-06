@@ -48,3 +48,23 @@ describe('Fichier du carnet', () => {
     await expect(importerFichier(b, new Blob([JSON.stringify({ format: 'autre' })]))).rejects.toThrow()
   })
 })
+
+describe('Export d’une sélection', () => {
+  it('n’exporte que les recettes choisies, avec leurs carnets', async () => {
+    const { exporterRecettes, exporterJson } = await import('./fichier')
+    const { creerCollection, rangerRecette } = await import('../donnees/collections')
+    const noel = await creerCollection(a, 'Noël')
+    const buche = await creerRecette(a, { ...recetteVide(), titre: 'Bûche' })
+    await creerRecette(a, { ...recetteVide(), titre: 'Autre' })
+    await rangerRecette(a, buche.id, [noel.id])
+
+    const fichier = await exporterRecettes(a, [buche.id], 'Noël : desserts')
+    expect(fichier.name).toBe('Quanto - Noël desserts.zip')
+    const r = await importerFichier(b, fichier)
+    expect(r.nouvelles).toBe(1)
+    expect((await b.collections.toArray()).map((c) => c.nom)).toEqual(['Noël'])
+
+    const json = JSON.parse(await (await exporterJson(a, [buche.id], 'Bûche')).text())
+    expect(json.recettes.map((x: { titre: string }) => x.titre)).toEqual(['Bûche'])
+  })
+})

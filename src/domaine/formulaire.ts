@@ -47,10 +47,11 @@ export interface ValeursFormulaire {
   etapes: { id: string; contenu: z.infer<typeof noeudRicheSchema> }[]
   notes: string
   tags: string[]
+  collections: string[]
 }
 
-/** Ce que produit le formulaire (favoris, collections et source sont gérés ailleurs). */
-export type ContenuFormulaire = Omit<BrouillonRecette, 'favori' | 'collections' | 'source'>
+/** Ce que produit le formulaire (favoris et source sont gérés ailleurs). */
+export type ContenuFormulaire = Omit<BrouillonRecette, 'favori' | 'source'>
 
 export function ligneIngredientVide(groupeId = ''): LigneIngredientFormulaire {
   return { id: nouvelId(), quantite: '', unite: 'g', nom: '', precision: '', fixe: false, groupeId }
@@ -125,6 +126,7 @@ export const schemaFormulaire = z
     etapes: z.array(z.object({ id: z.string(), contenu: noeudRicheSchema })),
     notes: z.string(),
     tags: z.array(z.string()),
+    collections: z.array(z.string()),
   })
   .superRefine((v, ctx) => {
     v.ingredients.forEach((i, n) => {
@@ -187,6 +189,7 @@ export const schemaFormulaire = z
       etapes: v.etapes.filter((e) => !estVide(e.contenu)),
       notes: v.notes.trim() || undefined,
       tags: [...new Set(v.tags.map((t) => t.trim()).filter(Boolean))],
+      collections: [...new Set(v.collections)],
     }
   })
 
@@ -227,6 +230,7 @@ export function valeursDepuisRecette(r?: Recette): ValeursFormulaire {
     etapes: r?.etapes.length ? r.etapes.map((e) => ({ ...e })) : [etapeVide()],
     notes: r?.notes ?? '',
     tags: [...(r?.tags ?? [])],
+    collections: [...(r?.collections ?? [])],
   }
 }
 

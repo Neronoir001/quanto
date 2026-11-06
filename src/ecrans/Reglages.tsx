@@ -1,4 +1,4 @@
-import { Calculator, ChevronRight, Sparkles, Trash, Wifi } from 'lucide-react'
+import { Calculator, ChevronRight, Library, Sparkles, Trash, Wifi } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Link } from 'wouter'
 import { useMessage } from '../composants/Messages'
@@ -29,6 +29,9 @@ export default function Reglages() {
         <ul className="divide-y divide-bord">
           <Lien href="/synchro" Icone={Wifi} detail="Wi-Fi ou fichier">
             Synchroniser et sauvegarder
+          </Lien>
+          <Lien href="/carnets" Icone={Library}>
+            Mes carnets
           </Lien>
           <Lien href="/corbeille" Icone={Trash} detail={corbeille?.length ? `${corbeille.length} recette${corbeille.length > 1 ? 's' : ''}` : 'Vide'}>
             Corbeille

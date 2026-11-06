@@ -107,3 +107,24 @@ describe('Mes moules', () => {
     expect(await listerMoules(db)).toEqual([])
   })
 })
+
+describe('Carnets', () => {
+  it('crée, renomme, range des recettes et supprime sans toucher aux recettes', async () => {
+    const { creerCollection, listerCollections, modifierCollection, rangerRecette, supprimerCollection } = await import('./collections')
+    const noel = await creerCollection(db, 'Noël')
+    const dimanche = await creerCollection(db, 'Desserts du dimanche')
+    expect((await listerCollections(db)).map((c) => c.nom)).toEqual(['Noël', 'Desserts du dimanche'])
+    expect(noel.couleur).not.toBe(dimanche.couleur)
+
+    await modifierCollection(db, noel.id, { nom: 'Fêtes' })
+    const r = await creerRecette(db, gateau())
+    await rangerRecette(db, r.id, [noel.id, dimanche.id, noel.id])
+    expect((await db.recettes.get(r.id))!.collections).toEqual([noel.id, dimanche.id])
+    expect(await historique(db, r.id)).toHaveLength(0)
+
+    await supprimerCollection(db, noel.id)
+    expect((await listerCollections(db)).map((c) => c.nom)).toEqual(['Desserts du dimanche'])
+    expect(await db.recettes.get(r.id)).toBeDefined()
+    expect((await db.collections.get(noel.id))!.supprimeLe).toBeDefined() // trace pour la synchronisation
+  })
+})

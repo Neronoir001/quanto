@@ -1,11 +1,13 @@
-import { ArrowLeft, ChefHat, Clock, Copy, Flame, Heart, Hourglass, Pencil, RotateCcw, Trash, Users } from 'lucide-react'
+import { ArrowLeft, Braces, ChefHat, Clock, Copy, Flame, Heart, Hourglass, Library, Pencil, Printer, RotateCcw, Share2, Trash, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { AnimatePresence } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import { VisuelRecette } from '../composants/Categorie'
 import Confirmation from '../composants/Confirmation'
+import ChoixCarnets from '../composants/ChoixCarnets'
 import Historique from '../composants/Historique'
+import Menu, { type ElementMenu } from '../composants/Menu'
 import { useMessage } from '../composants/Messages'
 import BandeauRecalcul from '../composants/BandeauRecalcul'
 import PanneauRecalcul from '../composants/PanneauRecalcul'
@@ -19,21 +21,10 @@ import { base } from '../donnees/base'
 import { useRecette } from '../donnees/hooks'
 import { usePhoto } from '../donnees/photos'
 import { basculerFavori, dupliquerRecette, noterConsultation, restaurerRecette, supprimerRecette } from '../donnees/recettes'
-
-const cleCible = (id: string) => `quanto.recalcul.${id}`
-
-function cibleInitiale(r: Recette): Cible | null {
-  try {
-    const memorisee = JSON.parse(sessionStorage.getItem(cleCible(r.id)) ?? 'null') as Cible | null
-    if (memorisee?.mode === 'personnes' && r.reference.personnes) return memorisee
-    if (memorisee?.mode === 'contenant' && r.reference.contenant) return memorisee
-  } catch {
-    /* rien de mémorisé */
-  }
-  if (r.reference.personnes) return { mode: 'personnes', personnes: r.reference.personnes }
-  if (r.reference.contenant) return { mode: 'contenant', contenant: { ...r.reference.contenant } }
-  return null
-}
+import { useCollections } from '../donnees/collections'
+import { ecrireCible, lireCible } from '../lib/recalculMemorise'
+import { partagerRecettes, telechargerJson } from '../import/partage'
+import { CRITERES_VIDES } from '../domaine/recherche'
 
 export default function FicheRecette() {
   const { id } = useParams<{ id: string }>()
@@ -62,13 +53,9 @@ function Fiche({ r }: { r: Recette }) {
   const [, naviguer] = useLocation()
   const afficher = useMessage()
   const photo = usePhoto(r.photoId, 'image')
-  const [cible, setCible] = useState<Cible | null>(() => cibleInitiale(r))
+  const [cible, setCible] = useState<Cible | null>(() => lireCible(r))
   useEffect(() => {
-    try {
-      if (cible) sessionStorage.setItem(cleCible(r.id), JSON.stringify(cible))
-    } catch {
-      /* stockage indisponible */
-    }
+    if (cible) ecrireCible(r.id, cible)
   }, [cible, r.id])
 
   // Bandeau de recalcul sur téléphone : visible quand le panneau sort de l'écran.
@@ -85,6 +72,8 @@ function Fiche({ r }: { r: Recette }) {
   const [coches, setCoches] = useState<Set<string>>(new Set())
   const [confirmerSuppression, setConfirmerSuppression] = useState(false)
   const [historiqueOuvert, setHistoriqueOuvert] = useState(false)
+  const [carnetsOuvert, setCarnetsOuvert] = useState(false)
+  const carnets = useCollections()
 
   const ratio = cible ? calculerRatio(r.reference, cible) : 1
   const k = ratio ?? 1
@@ -117,11 +106,43 @@ function Fiche({ r }: { r: Recette }) {
     { Icone: Hourglass, libelle: 'Repos', valeur: r.tempsRepos },
   ].filter((t) => t.valeur)
 
+  const imprimer = (avecPhoto: boolean) => {
+    document.documentElement.dataset.imprimerPhoto = avecPhoto ? 'oui' : 'non'
+    window.print()
+  }
+
+  const menu: ElementMenu[] = [
+    { libelle: 'Ranger dans un carnet', Icone: Library, action: () => setCarnetsOuvert(true) },
+    ...(photo
+      ? [
+          { libelle: 'Imprimer ou PDF, avec photo', Icone: Printer, action: () => imprimer(true) },
+          { libelle: 'Imprimer ou PDF, sans photo', Icone: Printer, action: () => imprimer(false) },
+        ]
+      : [{ libelle: 'Imprimer ou enregistrer en PDF', Icone: Printer, action: () => imprimer(false) }]),
+    {
+      libelle: 'Partager la recette',
+      Icone: Share2,
+      action: async () => afficher((await partagerRecettes([r.id], r.titre)) ? 'Recette partagée.' : 'Partage annulé.'),
+    },
+    { libelle: 'Exporter en JSON', Icone: Braces, action: () => void telechargerJson([r.id], r.titre) },
+    { libelle: 'Historique des versions', Icone: RotateCcw, action: () => setHistoriqueOuvert(true) },
+    { libelle: 'Dupliquer', Icone: Copy, action: () => void dupliquer() },
+    { libelle: 'Mettre à la corbeille', Icone: Trash, action: () => setConfirmerSuppression(true), dangereux: true },
+  ]
+
+  const mesCarnets = (carnets ?? []).filter((c) => r.collections.includes(c.id))
+  const descriptionRecalcul =
+    cible && ratio !== null && Math.abs(ratio - 1) > 1e-9
+      ? cible.mode === 'personnes'
+        ? `Quantités pour ${cible.personnes} personnes (recette d'origine : ${r.reference.personnes}).`
+        : `Quantités pour un ${decrireContenant(cible.contenant)} (recette d'origine : ${decrireContenant(r.reference.contenant!)}).`
+      : null
+
   const action = 'flex size-11 items-center justify-center rounded-full border border-bord bg-surface transition hover:border-primaire active:scale-95'
 
   return (
     <article className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 print:hidden">
         <Link href="/" className="inline-flex items-center gap-1.5 text-primaire underline-offset-4 hover:underline">
           <ArrowLeft className="size-4" aria-hidden="true" /> Mes recettes
         </Link>
@@ -139,15 +160,7 @@ function Fiche({ r }: { r: Recette }) {
               <Heart className={`size-5 ${r.favori ? 'fill-primaire text-primaire' : 'text-texte-doux'}`} />
             </motion.span>
           </button>
-          <button onClick={() => setHistoriqueOuvert(true)} aria-label="Historique des versions" title="Historique des versions" className={action}>
-            <RotateCcw className="size-5 text-texte-doux" />
-          </button>
-          <button onClick={dupliquer} aria-label="Dupliquer la recette" className={action}>
-            <Copy className="size-5 text-texte-doux" />
-          </button>
-          <button onClick={() => setConfirmerSuppression(true)} aria-label="Mettre la recette à la corbeille" className={action}>
-            <Trash className="size-5 text-texte-doux" />
-          </button>
+          <Menu elements={menu} />
           <Link href={`/recette/${r.id}/modifier`} className="inline-flex h-11 items-center gap-2 rounded-full bg-primaire px-5 font-medium text-sur-primaire transition hover:opacity-90">
             <Pencil className="size-4" aria-hidden="true" /> Modifier
           </Link>
@@ -156,7 +169,12 @@ function Fiche({ r }: { r: Recette }) {
 
       {/* En-tête */}
       <header className="overflow-hidden rounded-3xl border border-bord bg-surface shadow-sm">
-        <VisuelRecette url={photo} categorie={r.categorie} taille="grande" className={`w-full ${photo ? 'aspect-[16/9] max-h-[420px]' : 'h-40'}`} />
+        <VisuelRecette
+          url={photo}
+          categorie={r.categorie}
+          taille="grande"
+          className={`photo-recette w-full ${photo ? 'aspect-[16/9] max-h-[420px] print:max-h-[260px]' : 'h-40 print:hidden'}`}
+        />
         <div className="p-5 sm:p-7">
           <p className="text-sm font-semibold tracking-widest text-sauge uppercase">{LIBELLES_CATEGORIES[r.categorie]}</p>
           <h1 className="mt-1 font-serif text-4xl leading-tight font-semibold sm:text-5xl">{r.titre}</h1>
@@ -185,6 +203,21 @@ function Fiche({ r }: { r: Recette }) {
               </div>
             )}
           </dl>
+          {mesCarnets.length > 0 && (
+            <ul className="mt-4 flex flex-wrap gap-2 print:hidden" aria-label="Carnets">
+              {mesCarnets.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    href="/"
+                    onClick={() => sessionStorage.setItem('quanto.criteres', JSON.stringify({ ...CRITERES_VIDES, carnet: c.id }))}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-bord px-3 py-1 text-sm font-medium hover:border-primaire"
+                  >
+                    <span className="size-2.5 rounded-full" style={{ background: c.couleur }} aria-hidden="true" /> {c.nom}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
           {r.tags.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2" aria-label="Tags">
               {r.tags.map((t) => (
@@ -194,18 +227,27 @@ function Fiche({ r }: { r: Recette }) {
               ))}
             </ul>
           )}
+          {r.etapes.length > 0 && (
+            <Link
+              href={`/recette/${r.id}/cuisine`}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-sauge px-6 py-3 font-semibold text-surface shadow-sm transition hover:opacity-90 active:scale-[0.98] print:hidden"
+            >
+              <ChefHat className="size-5" aria-hidden="true" /> Mode cuisine
+            </Link>
+          )}
+          {descriptionRecalcul && <p className="mt-3 hidden font-semibold print:block">{descriptionRecalcul}</p>}
         </div>
       </header>
 
       <div className="lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-6">
-        <div className="space-y-6 lg:sticky lg:top-24">
+        <div className="space-y-6 lg:sticky lg:top-24 print:static">
           {cible && (
-            <div ref={refPanneau} className="scroll-mt-24">
+            <div ref={refPanneau} className="scroll-mt-24 print:hidden">
               <PanneauRecalcul reference={r.reference} cible={cible} ratio={ratio} onCible={setCible} />
             </div>
           )}
           {alertes.map((a) => (
-            <p key={a} role="status" className="rounded-2xl border border-dore bg-dore-fond px-4 py-3">
+            <p key={a} role="status" className="rounded-2xl border border-dore bg-dore-fond px-4 py-3 print:hidden">
               {a}
             </p>
           ))}
@@ -289,6 +331,7 @@ function Fiche({ r }: { r: Recette }) {
       </AnimatePresence>
 
       <Historique recette={r} ouvert={historiqueOuvert} onFermer={() => setHistoriqueOuvert(false)} />
+      <ChoixCarnets recette={r} ouvert={carnetsOuvert} onFermer={() => setCarnetsOuvert(false)} />
 
       <Confirmation
         ouvert={confirmerSuppression}
@@ -321,7 +364,7 @@ function LigneIngredient({
   return (
     <li onMouseEnter={() => onSurvol(i.id)} onMouseLeave={() => onSurvol(null)}>
       <label className="flex cursor-pointer items-baseline gap-3 py-2.5" onFocus={() => onSurvol(i.id)} onBlur={() => onSurvol(null)}>
-        <input type="checkbox" checked={coche} onChange={onCocher} className="relative top-0.5 size-5 shrink-0 accent-[var(--sauge)]" />
+        <input type="checkbox" checked={coche} onChange={onCocher} className="relative top-0.5 size-5 shrink-0 accent-[var(--sauge)] print:hidden" />
         <span className={`flex flex-1 flex-wrap items-baseline gap-x-2 transition ${coche ? 'text-texte-doux line-through opacity-60' : ''}`}>
           <Quantite q={q} />
           <span>

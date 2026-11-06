@@ -122,3 +122,35 @@ textarea,
   scroll-margin-top: 6rem;
   scroll-margin-bottom: 8rem;
 }
+
+/* Impression et enregistrement en PDF */
+@media print {
+  :root {
+    --fond: #ffffff;
+    --surface: #ffffff;
+    --texte: #000000;
+    --texte-doux: #444444;
+    --bord: #dddddd;
+    color-scheme: light;
+  }
+  @page {
+    margin: 14mm;
+  }
+  body {
+    background: #fff;
+    font-size: 11pt;
+  }
+  section,
+  header,
+  article li {
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  mark {
+    background: none !important;
+    font-weight: 700;
+  }
+  html[data-imprimer-photo='non'] .photo-recette {
+    display: none !important;
+  }
+}

@@ -24,7 +24,7 @@ export default function Cadre({ children }: { children: ReactNode }) {
         Aller au contenu
       </button>
 
-      <header className="sticky top-0 z-30 border-b border-bord/70 bg-fond/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+      <header className="sticky top-0 z-30 print:hidden border-b border-bord/70 bg-fond/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2.5" aria-label="Quanto, accueil">
             <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" className="size-9 rounded-xl shadow-sm" />
@@ -55,15 +55,15 @@ export default function Cadre({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main id="contenu" tabIndex={-1} className="outline-none mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-28 sm:px-6 md:pb-12">
+      <main id="contenu" tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-28 sm:px-6 md:pb-12 print:p-0">
         {children}
       </main>
 
-      <footer className="hidden pb-6 text-center text-sm text-texte-doux md:block">Quanto · version {VERSION}</footer>
+      <footer className="hidden pb-6 print:!hidden text-center text-sm text-texte-doux md:block">Quanto · version {VERSION}</footer>
 
       <nav
         aria-label="Navigation principale"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-bord bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 print:hidden border-t border-bord bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
       >
         <ul className="mx-auto grid max-w-md grid-cols-4">
           {ONGLETS.map(({ href, libelle, Icone, actif }) => (

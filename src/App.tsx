@@ -8,6 +8,7 @@ import MiseAJour from './composants/MiseAJour'
 import { base } from './donnees/base'
 import { obtenirAppareil } from './donnees/appareil'
 import { nettoyer } from './donnees/recettes'
+import Carnets from './ecrans/Carnets'
 import Corbeille from './ecrans/Corbeille'
 import FicheRecette from './ecrans/FicheRecette'
 import ListeRecettes from './ecrans/ListeRecettes'
@@ -18,6 +19,7 @@ const FormulaireRecette = lazy(() => import('./ecrans/FormulaireRecette'))
 const Synchronisation = lazy(() => import('./ecrans/Synchronisation'))
 const Calculateur = lazy(() => import('./ecrans/Calculateur'))
 const Importer = lazy(() => import('./ecrans/Importer'))
+const ModeCuisine = lazy(() => import('./ecrans/ModeCuisine'))
 
 /** Remonte en haut de page à chaque changement d'écran. */
 function RetourEnHaut() {
@@ -48,9 +50,11 @@ export default function App() {
               <Route path="/nouvelle" component={FormulaireRecette} />
               <Route path="/importer" component={Importer} />
               <Route path="/recette/:id/modifier" component={FormulaireRecette} />
+              <Route path="/recette/:id/cuisine" component={ModeCuisine} />
               <Route path="/recette/:id" component={FicheRecette} />
               <Route path="/reglages" component={Reglages} />
               <Route path="/corbeille" component={Corbeille} />
+              <Route path="/carnets" component={Carnets} />
               <Route path="/synchro" component={Synchronisation} />
               <Route path="/calculateur" component={Calculateur} />
               <Route>

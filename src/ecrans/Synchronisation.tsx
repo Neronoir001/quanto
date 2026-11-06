@@ -9,6 +9,7 @@ import { codeValide, genererCode } from '../lib/liaison'
 import { dateDernierEnvoi, exporterCarnet, importerFichier, type ModeExport, noterEnvoi, type ResultatImport } from '../sync/fichier'
 import { demarrerSynchro, type EtatSynchro, type Session } from '../sync/wifi'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { partagerOuEnregistrer } from '../import/partage'
 
 const dateLongue = (t: number) => new Date(t).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })
 /** « 2 nouvelles recettes » : chaque mot prend la marque du pluriel. */
@@ -233,27 +234,6 @@ function SynchroWifi() {
 // ————————————————————————————————————————————————————————————————
 // Fichier
 // ————————————————————————————————————————————————————————————————
-
-async function partagerOuEnregistrer(fichier: File, partager: boolean): Promise<boolean> {
-  if (partager) {
-    try {
-      await navigator.share({ files: [fichier], title: 'Carnet Quanto' })
-      return true
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return false
-      // Partage impossible : on enregistre le fichier à la place.
-    }
-  }
-  const url = URL.createObjectURL(fichier)
-  const lien = document.createElement('a')
-  lien.href = url
-  lien.download = fichier.name
-  document.body.append(lien)
-  lien.click()
-  lien.remove()
-  window.setTimeout(() => URL.revokeObjectURL(url), 30_000)
-  return true
-}
 
 function TransfertFichier() {
   const afficher = useMessage()
