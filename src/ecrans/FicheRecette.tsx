@@ -1,10 +1,11 @@
-import { ArrowLeft, ChefHat, Clock, Copy, Flame, Heart, Hourglass, Pencil, Trash, Users } from 'lucide-react'
+import { ArrowLeft, ChefHat, Clock, Copy, Flame, Heart, Hourglass, Pencil, RotateCcw, Trash, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { AnimatePresence } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import { VisuelRecette } from '../composants/Categorie'
 import Confirmation from '../composants/Confirmation'
+import Historique from '../composants/Historique'
 import { useMessage } from '../composants/Messages'
 import BandeauRecalcul from '../composants/BandeauRecalcul'
 import PanneauRecalcul from '../composants/PanneauRecalcul'
@@ -83,6 +84,7 @@ function Fiche({ r }: { r: Recette }) {
   const [survole, setSurvole] = useState<string | null>(null)
   const [coches, setCoches] = useState<Set<string>>(new Set())
   const [confirmerSuppression, setConfirmerSuppression] = useState(false)
+  const [historiqueOuvert, setHistoriqueOuvert] = useState(false)
 
   const ratio = cible ? calculerRatio(r.reference, cible) : 1
   const k = ratio ?? 1
@@ -136,6 +138,9 @@ function Fiche({ r }: { r: Recette }) {
             <motion.span key={String(r.favori)} initial={{ scale: 0.6 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }}>
               <Heart className={`size-5 ${r.favori ? 'fill-primaire text-primaire' : 'text-texte-doux'}`} />
             </motion.span>
+          </button>
+          <button onClick={() => setHistoriqueOuvert(true)} aria-label="Historique des versions" title="Historique des versions" className={action}>
+            <RotateCcw className="size-5 text-texte-doux" />
           </button>
           <button onClick={dupliquer} aria-label="Dupliquer la recette" className={action}>
             <Copy className="size-5 text-texte-doux" />
@@ -282,6 +287,8 @@ function Fiche({ r }: { r: Recette }) {
           />
         )}
       </AnimatePresence>
+
+      <Historique recette={r} ouvert={historiqueOuvert} onFermer={() => setHistoriqueOuvert(false)} />
 
       <Confirmation
         ouvert={confirmerSuppression}

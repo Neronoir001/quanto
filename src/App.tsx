@@ -6,6 +6,7 @@ import Cadre from './composants/Cadre'
 import { FournisseurMessages } from './composants/Messages'
 import MiseAJour from './composants/MiseAJour'
 import { base } from './donnees/base'
+import { obtenirAppareil } from './donnees/appareil'
 import { nettoyer } from './donnees/recettes'
 import Corbeille from './ecrans/Corbeille'
 import FicheRecette from './ecrans/FicheRecette'
@@ -14,7 +15,7 @@ import Reglages from './ecrans/Reglages'
 
 // Écrans chargés à la demande : l'éditeur et les outils ne ralentissent pas le premier affichage.
 const FormulaireRecette = lazy(() => import('./ecrans/FormulaireRecette'))
-const TestSynchro = lazy(() => import('./ecrans/TestSynchro'))
+const Synchronisation = lazy(() => import('./ecrans/Synchronisation'))
 const Calculateur = lazy(() => import('./ecrans/Calculateur'))
 
 /** Remonte en haut de page à chaque changement d'écran. */
@@ -29,6 +30,7 @@ function RetourEnHaut() {
 export default function App() {
   // Ménage discret au démarrage : corbeille et historique de plus de 30 jours.
   useEffect(() => {
+    void obtenirAppareil(base).catch(() => {})
     void nettoyer(base).catch(() => {})
   }, [])
 
@@ -47,11 +49,7 @@ export default function App() {
               <Route path="/recette/:id" component={FicheRecette} />
               <Route path="/reglages" component={Reglages} />
               <Route path="/corbeille" component={Corbeille} />
-              <Route path="/synchro">
-                <div className="mx-auto max-w-2xl">
-                  <TestSynchro />
-                </div>
-              </Route>
+              <Route path="/synchro" component={Synchronisation} />
               <Route path="/calculateur" component={Calculateur} />
               <Route>
                 <p className="py-20 text-center text-texte-doux">Cette page n'existe pas.</p>

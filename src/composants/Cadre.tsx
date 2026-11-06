@@ -1,4 +1,4 @@
-import { BookOpen, Plus, Settings } from 'lucide-react'
+import { ArrowLeftRight, BookOpen, Plus, Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'wouter'
 import { VERSION } from '../version'
@@ -6,7 +6,8 @@ import { VERSION } from '../version'
 const ONGLETS = [
   { href: '/', libelle: 'Recettes', Icone: BookOpen, actif: (p: string) => p === '/' || p.startsWith('/recette/') },
   { href: '/nouvelle', libelle: 'Nouvelle', Icone: Plus, actif: (p: string) => p === '/nouvelle' },
-  { href: '/reglages', libelle: 'Réglages', Icone: Settings, actif: (p: string) => p.startsWith('/reglages') || p === '/corbeille' || p === '/synchro' || p === '/calculateur' },
+  { href: '/synchro', libelle: 'Synchro', Icone: ArrowLeftRight, actif: (p: string) => p === '/synchro' },
+  { href: '/reglages', libelle: 'Réglages', Icone: Settings, actif: (p: string) => p.startsWith('/reglages') || p === '/corbeille' || p === '/calculateur' },
 ]
 
 /** Structure commune : en-tête (ordinateur), barre d'onglets en bas (téléphone). */
@@ -64,7 +65,7 @@ export default function Cadre({ children }: { children: ReactNode }) {
         aria-label="Navigation principale"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-bord bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
       >
-        <ul className="mx-auto grid max-w-md grid-cols-3">
+        <ul className="mx-auto grid max-w-md grid-cols-4">
           {ONGLETS.map(({ href, libelle, Icone, actif }) => (
             <li key={href}>
               <Link

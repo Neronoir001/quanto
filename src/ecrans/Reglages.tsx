@@ -1,13 +1,14 @@
-import { useLiveQuery } from 'dexie-react-hooks'
 import { Calculator, ChevronRight, Sparkles, Trash, Wifi } from 'lucide-react'
-import { type ReactNode, useId, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Link } from 'wouter'
 import { useMessage } from '../composants/Messages'
+import NomAppareil from '../composants/NomAppareil'
 import VerificationsAppareil from '../composants/VerificationsAppareil'
 import { base } from '../donnees/base'
-import { obtenirAppareil, renommerAppareil } from '../donnees/appareil'
 import { ajouterExemples } from '../donnees/exemples'
 import { useCorbeille, useRecettes } from '../donnees/hooks'
+import { CLE_FREQUENCE, FREQUENCE_PAR_DEFAUT, FREQUENCES } from '../donnees/sauvegarde'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { VERSION } from '../version'
 
 export default function Reglages() {
@@ -26,6 +27,9 @@ export default function Reglages() {
 
       <Bloc titre="Mes données">
         <ul className="divide-y divide-bord">
+          <Lien href="/synchro" Icone={Wifi} detail="Wi-Fi ou fichier">
+            Synchroniser et sauvegarder
+          </Lien>
           <Lien href="/corbeille" Icone={Trash} detail={corbeille?.length ? `${corbeille.length} recette${corbeille.length > 1 ? 's' : ''}` : 'Vide'}>
             Corbeille
           </Lien>
@@ -45,6 +49,7 @@ export default function Reglages() {
             </button>
           </li>
         </ul>
+        <RappelReglage />
         <p className="mt-2 text-sm text-texte-doux">
           {recettes?.length ?? 0} recette{(recettes?.length ?? 0) > 1 ? 's' : ''} enregistrée{(recettes?.length ?? 0) > 1 ? 's' : ''}{' '}
           uniquement sur cet appareil.
@@ -57,9 +62,6 @@ export default function Reglages() {
 
       <Bloc titre="Outils">
         <ul className="divide-y divide-bord">
-          <Lien href="/synchro" Icone={Wifi} detail="Phase 0">
-            Test de synchronisation Wi-Fi
-          </Lien>
           <Lien href="/calculateur" Icone={Calculator} detail="Phase 1">
             Démonstration du calculateur
           </Lien>
@@ -93,34 +95,23 @@ function Lien({ href, Icone, detail, children }: { href: string; Icone: typeof T
   )
 }
 
-function NomAppareil() {
-  const id = useId()
-  const appareil = useLiveQuery(() => obtenirAppareil(base), [])
-  const afficher = useMessage()
-  const [saisie, setSaisie] = useState<string | null>(null)
-  if (!appareil) return null
-  const valeur = saisie ?? appareil.nom
+function RappelReglage() {
+  const frequence = useLiveQuery(async () => ((await base.reglages.get(CLE_FREQUENCE))?.valeur as number | undefined) ?? FREQUENCE_PAR_DEFAUT, [])
+  if (frequence === undefined) return null
   return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault()
-        await renommerAppareil(base, valeur)
-        setSaisie(null)
-        afficher('Nom de l’appareil enregistré.')
-      }}
-    >
-      <label htmlFor={id} className="mb-1.5 block font-medium">
-        Nom de cet appareil
-      </label>
-      <p className="mb-2 text-sm text-texte-doux">Il apparaîtra lors des synchronisations (« iPhone », « Tablette cuisine »…).</p>
-      <div className="flex gap-2">
-        <input id={id} value={valeur} maxLength={30} onChange={(e) => setSaisie(e.target.value)} className="min-w-0 flex-1 rounded-xl border border-bord bg-fond px-3 py-2.5" />
-        {saisie !== null && saisie !== appareil.nom && (
-          <button type="submit" className="rounded-full bg-primaire px-5 font-medium text-sur-primaire">
-            Enregistrer
-          </button>
-        )}
-      </div>
-    </form>
+    <label className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-bord pt-3">
+      <span className="font-medium">Me rappeler de sauvegarder</span>
+      <select
+        value={frequence}
+        onChange={(e) => void base.reglages.put({ cle: CLE_FREQUENCE, valeur: Number(e.target.value) })}
+        className="rounded-full border border-bord bg-fond px-3 py-1.5"
+      >
+        {FREQUENCES.map((f) => (
+          <option key={f.jours} value={f.jours}>
+            {f.libelle}
+          </option>
+        ))}
+      </select>
+    </label>
   )
 }

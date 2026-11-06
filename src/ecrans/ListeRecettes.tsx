@@ -6,6 +6,7 @@ import { CarteRecette, LigneRecette } from '../composants/CarteRecette'
 import { APPARENCE } from '../composants/Categorie'
 import { useMessage } from '../composants/Messages'
 import Puce from '../composants/Puce'
+import RappelSauvegarde from '../composants/RappelSauvegarde'
 import {
   CATEGORIES,
   DIFFICULTES,
@@ -88,6 +89,8 @@ export default function ListeRecettes() {
           })}
         </div>
       </div>
+
+      <RappelSauvegarde recettes={recettes} />
 
       {/* Recherche */}
       <div className="flex gap-2">
