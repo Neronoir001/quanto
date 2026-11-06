@@ -32,6 +32,7 @@ import { UNITES, type Famille } from '../domaine/unites'
 import { base } from '../donnees/base'
 import { useRecette, useRecettes } from '../donnees/hooks'
 import { creerRecette, modifierRecette } from '../donnees/recettes'
+import { lireImport, oublierImport } from '../import/transfert'
 
 export default function FormulaireRecette() {
   const { id } = useParams<{ id?: string }>()
@@ -114,7 +115,12 @@ function Formulaire({ recette }: { recette?: Recette }) {
   const afficher = useMessage()
   const toutes = useRecettes()
   const cleBrouillon = `quanto.brouillon.${recette?.id ?? 'nouvelle'}`
-  const [brouillon, setBrouillon] = useState(() => lireBrouillon(cleBrouillon, recette))
+  // Recette importée (texte, site, PDF, photo) : le formulaire s'ouvre prérempli.
+  const [importe] = useState(() => (recette ? null : lireImport()))
+  useEffect(() => {
+    if (importe) oublierImport()
+  }, [importe])
+  const [brouillon, setBrouillon] = useState(() => (importe ? null : lireBrouillon(cleBrouillon, recette)))
   const [versionEditeurs, setVersionEditeurs] = useState(0)
   const [confirmerAbandon, setConfirmerAbandon] = useState(false)
   const [optionsOuvertes, setOptionsOuvertes] = useState<Set<string>>(new Set())
@@ -129,7 +135,7 @@ function Formulaire({ recette }: { recette?: Recette }) {
     formState: { errors, isDirty, isSubmitting },
   } = useForm<ValeursFormulaire, unknown, ContenuFormulaire>({
     resolver: zodResolver(schemaFormulaire),
-    defaultValues: valeursDepuisRecette(recette),
+    defaultValues: importe?.valeurs ?? valeursDepuisRecette(recette),
     mode: 'onTouched',
   })
 
@@ -186,7 +192,7 @@ function Formulaire({ recette }: { recette?: Recette }) {
         await modifierRecette(base, recette.id, contenu)
         idFinal = recette.id
       } else {
-        const r = await creerRecette(base, { ...contenu, favori: false, collections: [], source: { type: 'saisie' } })
+        const r = await creerRecette(base, { ...contenu, favori: false, collections: [], source: importe?.source ?? { type: 'saisie' } })
         idFinal = r.id
       }
       effacerBrouillon(cleBrouillon)
@@ -223,7 +229,24 @@ function Formulaire({ recette }: { recette?: Recette }) {
           <ArrowLeft className="size-4" aria-hidden="true" /> {recette ? 'Retour à la recette' : 'Mes recettes'}
         </Link>
         <h1 className="mt-3 font-serif text-4xl font-semibold">{recette ? 'Modifier la recette' : 'Nouvelle recette'}</h1>
+        {!recette && !importe && (
+          <p className="mt-2 text-texte-doux">
+            Ou{' '}
+            <Link href="/importer" className="font-medium text-primaire underline underline-offset-4">
+              importez-la
+            </Link>{' '}
+            depuis un texte, un site, un PDF ou une photo.
+          </p>
+        )}
       </div>
+
+      {importe && (
+        <div role="status" className="rounded-2xl border border-sauge bg-sauge-fond px-4 py-3">
+          <p className="font-semibold text-sauge">Recette importée : vérifiez chaque partie, puis enregistrez.</p>
+          <p className="text-sm">Les quantités repérées dans les étapes sont déjà recalculables (pastilles dorées).</p>
+          {importe.avertissement && <p className="mt-1 text-sm">{importe.avertissement}</p>}
+        </div>
+      )}
 
       {brouillon && (
         <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dore bg-dore-fond px-4 py-3">

@@ -10,7 +10,8 @@ import {
   nouvelId,
   type Recette,
 } from './modele'
-import { documentVide, estVide } from './texteRiche'
+import { documentDepuisTexte, documentVide, estVide } from './texteRiche'
+import { lireLigneIngredient, type RecetteAnalysee } from './importTexte'
 
 /**
  * Formulaire de saisie : les champs sont du texte (« 1,5 », « 2 à 3 »…), convertis
@@ -226,5 +227,45 @@ export function valeursDepuisRecette(r?: Recette): ValeursFormulaire {
     etapes: r?.etapes.length ? r.etapes.map((e) => ({ ...e })) : [etapeVide()],
     notes: r?.notes ?? '',
     tags: [...(r?.tags ?? [])],
+  }
+}
+
+/** Valeurs du formulaire à partir d'une recette importée (texte, site, PDF, photo). */
+export function valeursDepuisImport(a: RecetteAnalysee): ValeursFormulaire {
+  const base = valeursDepuisRecette()
+  const ingredients: LigneIngredientFormulaire[] = a.lignes
+    .filter((l) => l.type === 'ingredient' && l.texte.trim())
+    .map((l) => {
+      const i = lireLigneIngredient(l.texte)
+      return {
+        ...ligneIngredientVide(),
+        quantite: ecrireQuantite(i.quantite, i.quantiteMax),
+        unite: i.unite,
+        nom: i.nom,
+        precision: i.precision ?? '',
+      }
+    })
+  // Les étapes sont balisées : leurs quantités deviennent recalculables et reliées aux ingrédients.
+  const pourLiaison: Ingredient[] = ingredients.map((i) => ({ id: i.id, nom: i.nom, unite: i.unite, recalcul: 'normal' }))
+  const etapes = a.lignes
+    .filter((l) => l.type === 'etape' && l.texte.trim())
+    .map((l) => ({ id: nouvelId(), contenu: documentDepuisTexte(l.texte, pourLiaison) }))
+  const c = a.contenant
+  return {
+    ...base,
+    titre: a.titre,
+    categorie: a.categorie ?? base.categorie,
+    tempsPreparation: texteNombre(a.tempsPreparation),
+    tempsCuisson: texteNombre(a.tempsCuisson),
+    tempsRepos: texteNombre(a.tempsRepos),
+    personnes: a.personnes ? String(a.personnes) : c ? '' : base.personnes,
+    avecContenant: !!c,
+    contenant: c
+      ? { ...base.contenant, type: c.type, diametre: texteNombre(c.diametre), cote: texteNombre(c.cote) }
+      : base.contenant,
+    ingredients: ingredients.length ? ingredients : base.ingredients,
+    etapes: etapes.length ? etapes : base.etapes,
+    notes: a.notes ?? '',
+    tags: a.tags ?? [],
   }
 }

@@ -99,7 +99,7 @@ export interface QuantiteTrouvee {
 }
 
 const echapper = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-const NOMBRE = String.raw`\d+(?:[.,]\d+)?(?:\s?[½¼¾⅓⅔])?|\d+\s?\/\s?\d+|[½¼¾⅓⅔]`
+const NOMBRE = String.raw`\d+\s?\/\s?\d+|\d+(?:[.,]\d+)?(?:\s?[½¼¾⅓⅔])?|[½¼¾⅓⅔]`
 const UNITES_REGEX = [...PAR_ALIAS.keys()].sort((a, b) => b.length - a.length).map(echapper).join('|')
 const PIECES = String.raw`(?:gros |petits? |beaux? )?(?:œufs?|oeufs?|jaunes?|blancs?)`
 

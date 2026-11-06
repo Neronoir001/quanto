@@ -32,6 +32,16 @@ export default defineConfig({
       workbox: {
         // Seules les polices des alphabets latins sont gardées hors ligne (le reste est inutile en français).
         globPatterns: ['**/*.{js,css,html,ico,png,svg}', '**/*latin*.woff2'],
+        // La lecture de photos (OCR, ~4 Mo) et de PDF n'est téléchargée qu'au premier usage,
+        // puis gardée sur l'appareil pour fonctionner hors ligne.
+        globIgnores: ['ocr/**', '**/pdf.worker*'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/ocr/') || /pdf\.worker.*\.m?js$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: 'quanto-lecture', expiration: { maxEntries: 20 } },
+          },
+        ],
       },
     }),
   ],

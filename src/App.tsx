@@ -17,6 +17,7 @@ import Reglages from './ecrans/Reglages'
 const FormulaireRecette = lazy(() => import('./ecrans/FormulaireRecette'))
 const Synchronisation = lazy(() => import('./ecrans/Synchronisation'))
 const Calculateur = lazy(() => import('./ecrans/Calculateur'))
+const Importer = lazy(() => import('./ecrans/Importer'))
 
 /** Remonte en haut de page à chaque changement d'écran. */
 function RetourEnHaut() {
@@ -45,6 +46,7 @@ export default function App() {
             <Switch>
               <Route path="/" component={ListeRecettes} />
               <Route path="/nouvelle" component={FormulaireRecette} />
+              <Route path="/importer" component={Importer} />
               <Route path="/recette/:id/modifier" component={FormulaireRecette} />
               <Route path="/recette/:id" component={FicheRecette} />
               <Route path="/reglages" component={Reglages} />

@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Fichiers OCR copiés automatiquement depuis node_modules
+public/ocr/

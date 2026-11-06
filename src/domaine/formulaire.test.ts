@@ -65,3 +65,28 @@ describe('Formulaire de saisie', () => {
     expect(schemaFormulaire.parse(v).reference.contenant).toEqual({ type: 'cake', longueur: 26, largeur: 10, hauteur: 8 })
   })
 })
+
+describe('Recette importée vers le formulaire', () => {
+  it('prépare ingrédients et étapes balisées, puis passe la validation', async () => {
+    const { analyserTexte } = await import('./importTexte')
+    const { valeursDepuisImport } = await import('./formulaire')
+    const a = analyserTexte(`Crêpes
+Pour 4 personnes
+250 g de farine
+4 œufs
+50 cl de lait
+Mélangez 250 g de farine avec 4 œufs, puis ajoutez 50 cl de lait petit à petit.`)
+    const v = valeursDepuisImport(a)
+    expect(v.titre).toBe('Crêpes')
+    expect(v.personnes).toBe('4')
+    expect(v.ingredients.map((i) => [i.quantite, i.unite, i.nom])).toEqual([
+      ['250', 'g', 'farine'],
+      ['4', 'piece', 'œufs'],
+      ['50', 'cl', 'lait'],
+    ])
+    const sortie = schemaFormulaire.parse(v)
+    const quantites = sortie.etapes[0].contenu.content![0].content!.filter((n) => n.type === 'quantite')
+    expect(quantites).toHaveLength(3)
+    expect(quantites.map((q) => q.attrs!.ingredientId)).toEqual(sortie.ingredients.map((i) => i.id))
+  })
+})

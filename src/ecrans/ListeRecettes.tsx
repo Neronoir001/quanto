@@ -1,4 +1,4 @@
-import { Heart, LayoutGrid, List, Plus, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
+import { Heart, Import, LayoutGrid, List, Plus, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactNode, useMemo, useState } from 'react'
 import { Link } from 'wouter'
@@ -71,6 +71,10 @@ export default function ListeRecettes() {
             {recettes.length} recette{recettes.length > 1 ? 's' : ''}
           </p>
         </div>
+        <div className="flex items-center gap-2">
+        <Link href="/importer" className="inline-flex items-center gap-2 rounded-full border border-bord bg-surface px-4 py-2 font-medium transition hover:border-primaire">
+          <Import className="size-4 text-primaire" aria-hidden="true" /> Importer
+        </Link>
         <div className="flex items-center gap-1 rounded-full border border-bord bg-surface p-1" role="radiogroup" aria-label="Affichage">
           {(['grille', 'liste'] as const).map((mode) => {
             const Icone = mode === 'grille' ? LayoutGrid : List
@@ -87,6 +91,7 @@ export default function ListeRecettes() {
               </button>
             )
           })}
+        </div>
         </div>
       </div>
 
@@ -284,6 +289,9 @@ function Bienvenue() {
         >
           <Sparkles className="size-5" aria-hidden="true" /> Ajouter des exemples
         </button>
+        <Link href="/importer" className="inline-flex items-center gap-2 rounded-full px-6 py-3 font-medium text-primaire underline-offset-4 hover:underline">
+          <Import className="size-5" aria-hidden="true" /> Importer une recette
+        </Link>
       </div>
     </div>
   )
