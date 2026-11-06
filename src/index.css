@@ -84,3 +84,41 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Éditeur des étapes */
+.editeur-etape .quantite-balisee {
+  display: inline-block;
+  padding: 0 0.35em;
+  margin: 0 0.05em;
+  border-radius: 0.4em;
+  background: var(--dore-fond);
+  border: 1px solid var(--dore);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.editeur-etape .quantite-balisee.ProseMirror-selectednode {
+  outline: 2px solid var(--primaire);
+  outline-offset: 1px;
+}
+.editeur-etape p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--texte-doux);
+  opacity: 0.75;
+}
+.editeur-etape p + p {
+  margin-top: 0.5rem;
+}
+
+/* Les champs atteints au clavier ou après une erreur ne passent pas sous l'en-tête fixe. */
+input,
+select,
+textarea,
+[contenteditable] {
+  scroll-margin-top: 6rem;
+  scroll-margin-bottom: 8rem;
+}

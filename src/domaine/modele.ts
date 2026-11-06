@@ -71,7 +71,7 @@ export interface NoeudRiche {
   content?: NoeudRiche[]
 }
 
-export const noeudRicheSchema: z.ZodType<NoeudRiche> = z.lazy(() =>
+export const noeudRicheSchema: z.ZodType<NoeudRiche, NoeudRiche> = z.lazy(() =>
   z.object({
     type: z.string(),
     text: z.string().optional(),

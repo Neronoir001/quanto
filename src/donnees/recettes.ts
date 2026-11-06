@@ -1,5 +1,6 @@
 import { type BrouillonRecette, nouvelId, type Recette, recetteSchema, type Version } from '../domaine/modele'
 import { obtenirAppareil } from './appareil'
+import { copierPhoto } from './photos'
 import type { BaseQuanto } from './base'
 
 /** Durée de conservation de la corbeille et de l'historique des versions. */
@@ -38,7 +39,9 @@ export async function modifierRecette(
   db: BaseQuanto,
   id: string,
   changements: Partial<BrouillonRecette>,
+  options: { historiser?: boolean } = {},
 ): Promise<Recette> {
+  const historiser = options.historiser ?? true
   const appareil = await obtenirAppareil(db)
   return db.transaction('rw', db.recettes, db.versions, async () => {
     const avant = await lire(db, id)
@@ -50,10 +53,36 @@ export async function modifierRecette(
       modifieLe: apres(avant.modifieLe),
       modifiePar: appareil.id,
     })
-    await db.versions.add({ recetteId: id, contenu: avant, date: Date.now() })
+    if (historiser) await db.versions.add({ recetteId: id, contenu: avant, date: Date.now() })
     await db.recettes.put(apresModif)
     return apresModif
   })
+}
+
+/** Ajoute ou retire des favoris (sans encombrer l'historique). */
+export async function basculerFavori(db: BaseQuanto, id: string): Promise<boolean> {
+  const recette = await lire(db, id)
+  await modifierRecette(db, id, { favori: !recette.favori }, { historiser: false })
+  return !recette.favori
+}
+
+/** Crée une copie d'une recette (photo comprise). */
+export async function dupliquerRecette(db: BaseQuanto, id: string): Promise<Recette> {
+  const { id: _id, creeLe: _c, modifieLe: _m, modifiePar: _p, supprimeLe: _s, ...contenu } = await lire(db, id)
+  const photoId = contenu.photoId ? await copierPhoto(db, contenu.photoId) : undefined
+  return creerRecette(db, { ...contenu, titre: `${contenu.titre} (copie)`, photoId, favori: false })
+}
+
+const CLE_CONSULTATIONS = 'consultations'
+
+/** Mémorise la date de consultation d'une recette (pour le tri « dernières consultées »). Reste sur l'appareil. */
+export async function noterConsultation(db: BaseQuanto, id: string): Promise<void> {
+  const actuel = ((await db.reglages.get(CLE_CONSULTATIONS))?.valeur ?? {}) as Record<string, number>
+  await db.reglages.put({ cle: CLE_CONSULTATIONS, valeur: { ...actuel, [id]: Date.now() } })
+}
+
+export async function lireConsultations(db: BaseQuanto): Promise<Record<string, number>> {
+  return ((await db.reglages.get(CLE_CONSULTATIONS))?.valeur ?? {}) as Record<string, number>
 }
 
 /** Met une recette à la corbeille. Elle reste récupérable 30 jours. */
@@ -114,6 +143,12 @@ export async function nettoyer(db: BaseQuanto, maintenant = Date.now()): Promise
       await db.recettes.delete(r.id)
     }
     const versions = await db.versions.where('date').below(limite).delete()
+    // Photos qui ne servent plus à aucune recette ni à aucune version conservée.
+    const utilisees = new Set<string>()
+    await db.recettes.each((r) => r.photoId && utilisees.add(r.photoId))
+    await db.versions.each((v) => v.contenu.photoId && utilisees.add(v.contenu.photoId))
+    const orphelines = (await db.photos.toCollection().primaryKeys()).filter((id) => !utilisees.has(id))
+    await db.photos.bulkDelete(orphelines)
     return { recettes: perimees.length, versions }
   })
 }
