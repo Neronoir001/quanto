@@ -37,7 +37,7 @@ export default function Historique({ recette, ouvert, onFermer }: { recette: Rec
         <h2 id="titre-historique" className="font-serif text-2xl font-semibold">
           Historique
         </h2>
-        <button onClick={onFermer} aria-label="Fermer l'historique" className="rounded-full p-2 text-texte-doux hover:bg-fond hover:text-texte">
+        <button type="button" onClick={onFermer} aria-label="Fermer l'historique" className="rounded-full p-2 text-texte-doux hover:bg-fond hover:text-texte">
           <X className="size-5" />
         </button>
       </div>
@@ -62,7 +62,7 @@ export default function Historique({ recette, ouvert, onFermer }: { recette: Rec
                   {v.contenu.ingredients.length > 1 ? 's' : ''}, {v.contenu.etapes.length} étape{v.contenu.etapes.length > 1 ? 's' : ''}
                 </p>
               </div>
-              <button
+              <button type="button"
                 onClick={async () => {
                   await restaurerVersion(base, v.num!)
                   afficher(`Version du ${date(v.contenu.modifieLe)} restaurée.`)

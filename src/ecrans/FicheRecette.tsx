@@ -147,7 +147,7 @@ function Fiche({ r }: { r: Recette }) {
           <ArrowLeft className="size-4" aria-hidden="true" /> Mes recettes
         </Link>
         <div className="flex items-center gap-2">
-          <button
+          <button type="button"
             onClick={async () => {
               const est = await basculerFavori(base, r.id)
               afficher(est ? 'Ajoutée aux favoris' : 'Retirée des favoris')

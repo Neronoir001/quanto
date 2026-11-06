@@ -19,8 +19,9 @@
   color-scheme: light;
 }
 
+/* Thème sombre : automatique (selon l'appareil) sauf choix contraire dans les réglages. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='clair']) {
     --fond: #1c1917;
     --surface: #26211e;
     --bord: #3a332e;
@@ -37,6 +38,43 @@
     --alerte-fond: #3d2421;
     color-scheme: dark;
   }
+}
+:root[data-theme='sombre'] {
+  --fond: #1c1917;
+  --surface: #26211e;
+  --bord: #3a332e;
+  --texte: #f3ece2;
+  --texte-doux: #bfb3a6;
+  --primaire: #e08a63;
+  --sur-primaire: #1c1917;
+  --terracotta-vif: #d9774d;
+  --sauge: #a9b89a;
+  --sauge-fond: #2c3328;
+  --dore: #d8b66e;
+  --dore-fond: #3a3122;
+  --alerte: #f08a80;
+  --alerte-fond: #3d2421;
+  color-scheme: dark;
+}
+
+/* La variante « dark: » de Tailwind suit le même choix. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='clair']) *) {
+      @slot;
+    }
+  }
+  &:where([data-theme='sombre'] *) {
+    @slot;
+  }
+}
+
+/* Taille du texte choisie dans les réglages (tout est en rem : l'interface entière s'adapte). */
+:root[data-texte='grand'] {
+  font-size: 112.5%;
+}
+:root[data-texte='tres-grand'] {
+  font-size: 125%;
 }
 
 @theme inline {
@@ -125,7 +163,8 @@ textarea,
 
 /* Impression et enregistrement en PDF */
 @media print {
-  :root {
+  :root,
+  :root[data-theme] {
     --fond: #ffffff;
     --surface: #ffffff;
     --texte: #000000;
@@ -152,5 +191,14 @@ textarea,
   }
   html[data-imprimer-photo='non'] .photo-recette {
     display: none !important;
+  }
+}
+
+/* Sur iPhone, un champ en dessous de 16 px provoque un zoom au toucher : on l'évite. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
   }
 }

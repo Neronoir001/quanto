@@ -36,10 +36,10 @@ export default function Confirmation({ ouvert, titre, message, confirmer, danger
       </h2>
       <p className="mt-2 text-texte-doux">{message}</p>
       <div className="mt-6 flex flex-wrap justify-end gap-3">
-        <button onClick={onAnnuler} className="rounded-full px-5 py-2.5 font-medium text-texte-doux hover:text-texte">
+        <button type="button" onClick={onAnnuler} className="rounded-full px-5 py-2.5 font-medium text-texte-doux hover:text-texte">
           Annuler
         </button>
-        <button
+        <button type="button"
           onClick={onConfirmer}
           className={`rounded-full px-5 py-2.5 font-medium transition hover:opacity-90 ${
             dangereux ? 'bg-alerte text-fond' : 'bg-primaire text-sur-primaire'

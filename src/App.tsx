@@ -17,7 +17,6 @@ import Reglages from './ecrans/Reglages'
 // Écrans chargés à la demande : l'éditeur et les outils ne ralentissent pas le premier affichage.
 const FormulaireRecette = lazy(() => import('./ecrans/FormulaireRecette'))
 const Synchronisation = lazy(() => import('./ecrans/Synchronisation'))
-const Calculateur = lazy(() => import('./ecrans/Calculateur'))
 const Importer = lazy(() => import('./ecrans/Importer'))
 const ModeCuisine = lazy(() => import('./ecrans/ModeCuisine'))
 
@@ -56,7 +55,6 @@ export default function App() {
               <Route path="/corbeille" component={Corbeille} />
               <Route path="/carnets" component={Carnets} />
               <Route path="/synchro" component={Synchronisation} />
-              <Route path="/calculateur" component={Calculateur} />
               <Route>
                 <p className="py-20 text-center text-texte-doux">Cette page n'existe pas.</p>
               </Route>

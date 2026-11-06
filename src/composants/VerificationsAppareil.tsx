@@ -20,7 +20,7 @@ export default function VerificationsAppareil() {
             ) : installer ? (
               <>
                 <span>Quanto peut être installée sur cet appareil.</span>
-                <button
+                <button type="button"
                   onClick={installer}
                   className="mt-3 block rounded-full bg-primaire px-5 py-2.5 font-medium text-sur-primaire transition hover:opacity-90 active:scale-[0.98]"
                 >
@@ -47,7 +47,7 @@ export default function VerificationsAppareil() {
                     : "L'appareil n'a pas encore accordé la protection. Elle est souvent accordée automatiquement une fois l'application installée."}
                 </span>
                 {plateforme !== 'ios' && (
-                  <button
+                  <button type="button"
                     onClick={proteger}
                     className="mt-3 block rounded-full border border-primaire px-5 py-2 font-medium text-primaire transition hover:bg-primaire hover:text-sur-primaire"
                   >

@@ -34,7 +34,7 @@ export default function ChoixCarnets({ recette, ouvert, onFermer }: { recette: R
         <h2 id="titre-carnets" className="font-serif text-2xl font-semibold">
           Ranger dans…
         </h2>
-        <button onClick={onFermer} aria-label="Fermer" className="rounded-full p-2 text-texte-doux hover:bg-fond hover:text-texte">
+        <button type="button" onClick={onFermer} aria-label="Fermer" className="rounded-full p-2 text-texte-doux hover:bg-fond hover:text-texte">
           <X className="size-5" />
         </button>
       </div>

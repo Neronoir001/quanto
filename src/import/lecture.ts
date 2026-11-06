@@ -112,3 +112,18 @@ export async function tournerImage(source: Blob, sens: 90 | -90): Promise<Blob> 
   image.close()
   return new Promise((ok, ko) => toile.toBlob((b) => (b ? ok(b) : ko(new Error('Rotation impossible'))), 'image/jpeg', 0.92))
 }
+
+/** Découpe une photo selon un cadre (en fractions de l'image), en pleine qualité. */
+export async function recadrerImage(source: Blob, cadre: { x: number; y: number; l: number; h: number }): Promise<Blob> {
+  const image = await createImageBitmap(source)
+  const sx = Math.round(cadre.x * image.width)
+  const sy = Math.round(cadre.y * image.height)
+  const sl = Math.max(1, Math.round(cadre.l * image.width))
+  const sh = Math.max(1, Math.round(cadre.h * image.height))
+  const toile = document.createElement('canvas')
+  toile.width = sl
+  toile.height = sh
+  toile.getContext('2d')!.drawImage(image, sx, sy, sl, sh, 0, 0, sl, sh)
+  image.close()
+  return new Promise((ok, ko) => toile.toBlob((b) => (b ? ok(b) : ko(new Error('Recadrage impossible'))), 'image/jpeg', 0.92))
+}

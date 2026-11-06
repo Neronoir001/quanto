@@ -33,7 +33,7 @@ export default function RappelSauvegarde({ recettes }: { recettes: Recette[] }) 
       <Link href="/synchro" className="rounded-full bg-primaire px-4 py-1.5 font-medium text-sur-primaire">
         Sauvegarder
       </Link>
-      <button
+      <button type="button"
         onClick={() => void base.reglages.put({ cle: CLE_REPORT, valeur: maintenant + 7 * JOUR })}
         aria-label="Me le rappeler dans une semaine"
         title="Me le rappeler dans une semaine"

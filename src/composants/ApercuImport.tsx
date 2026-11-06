@@ -73,7 +73,7 @@ export default function ApercuImport({ analyse, onChange, onValider, onAjouterPa
       {analyse.contenant && (
         <p className="text-sm text-texte-doux">
           Moule repéré : <strong className="text-texte">{decrireContenant(analyse.contenant)}</strong>.{' '}
-          <button onClick={() => maj({ contenant: undefined })} className="text-primaire underline underline-offset-2">
+          <button type="button" onClick={() => maj({ contenant: undefined })} className="text-primaire underline underline-offset-2">
             Ne pas l'utiliser
           </button>
         </p>

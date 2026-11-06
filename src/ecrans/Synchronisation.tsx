@@ -91,7 +91,7 @@ function SynchroWifi() {
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border border-bord bg-fond p-4">
               <p className="font-semibold">Sur le premier appareil</p>
-              <button onClick={() => lancer(genererCode(), true)} className={`${boutonPrincipal} mt-3 w-full`}>
+              <button type="button" onClick={() => lancer(genererCode(), true)} className={`${boutonPrincipal} mt-3 w-full`}>
                 Afficher un code
               </button>
             </div>
@@ -137,7 +137,7 @@ function SynchroWifi() {
             <p className="my-3 font-mono text-2xl text-texte-doux">Code {code}</p>
           )}
           <p className="animate-pulse text-texte-doux">Recherche de l'autre appareil… (2 minutes au plus)</p>
-          <button onClick={terminer} className="mt-4 text-primaire underline underline-offset-4">
+          <button type="button" onClick={terminer} className="mt-4 text-primaire underline underline-offset-4">
             Annuler
           </button>
         </div>
@@ -158,10 +158,10 @@ function SynchroWifi() {
             <p className="animate-pulse text-center text-texte-doux">En attente de la confirmation sur « {etat.pair?.nom} »…</p>
           ) : (
             <div className="flex flex-wrap gap-3">
-              <button onClick={() => session.current?.confirmer()} className={boutonPrincipal}>
+              <button type="button" onClick={() => session.current?.confirmer()} className={boutonPrincipal}>
                 <CircleCheck className="size-5" aria-hidden="true" /> Identiques : synchroniser
               </button>
-              <button onClick={terminer} className="px-3 py-3 text-texte-doux hover:text-texte">
+              <button type="button" onClick={terminer} className="px-3 py-3 text-texte-doux hover:text-texte">
                 Ils sont différents
               </button>
             </div>
@@ -211,7 +211,7 @@ function SynchroWifi() {
               sert de l'heure pour savoir quelle version est la plus récente : vérifiez la date et l'heure de vos appareils.
             </p>
           )}
-          <button onClick={terminer} className={boutonPrincipal}>
+          <button type="button" onClick={terminer} className={boutonPrincipal}>
             Terminer
           </button>
         </div>
@@ -221,7 +221,7 @@ function SynchroWifi() {
         <div className="mt-4 space-y-3 rounded-2xl border border-alerte bg-alerte-fond p-5" role="alert">
           <p className="font-semibold text-alerte">{etat.erreur}</p>
           <div className="flex flex-wrap gap-3">
-            <button onClick={terminer} className={boutonPrincipal}>
+            <button type="button" onClick={terminer} className={boutonPrincipal}>
               Recommencer
             </button>
           </div>
@@ -308,11 +308,11 @@ function TransfertFichier() {
 
       <div className="mt-4 flex flex-wrap gap-3">
         {peutPartager && (
-          <button disabled={enCours} onClick={() => void exporter(true)} className={boutonPrincipal}>
+          <button type="button" disabled={enCours} onClick={() => void exporter(true)} className={boutonPrincipal}>
             <Share2 className="size-5" aria-hidden="true" /> Partager…
           </button>
         )}
-        <button disabled={enCours} onClick={() => void exporter(false)} className={peutPartager ? boutonSecondaire : boutonPrincipal}>
+        <button type="button" disabled={enCours} onClick={() => void exporter(false)} className={peutPartager ? boutonSecondaire : boutonPrincipal}>
           <Download className="size-5" aria-hidden="true" /> Enregistrer le fichier
         </button>
       </div>
@@ -320,7 +320,7 @@ function TransfertFichier() {
       <div className="mt-6 border-t border-bord pt-5">
         <p className="font-semibold">Recevoir un carnet</p>
         <p className="mt-1 text-sm text-texte-doux">Choisissez le fichier .zip reçu d'un autre appareil. Ses recettes seront fusionnées avec les vôtres, sans doublon.</p>
-        <button disabled={enCours} onClick={() => champFichier.current?.click()} className={`${boutonSecondaire} mt-3`}>
+        <button type="button" disabled={enCours} onClick={() => champFichier.current?.click()} className={`${boutonSecondaire} mt-3`}>
           <FileUp className="size-5" aria-hidden="true" /> Importer un fichier
         </button>
         <input

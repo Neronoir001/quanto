@@ -91,7 +91,7 @@ function Cuisine({ r }: { r: Recette }) {
     <div className="fixed inset-0 z-[60] flex flex-col bg-fond text-texte" role="dialog" aria-modal="true" aria-label={`Mode cuisine : ${r.titre}`}>
       {/* En-tête */}
       <header className="flex items-center gap-3 border-b border-bord bg-surface px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2">
-        <button onClick={quitter} aria-label="Quitter le mode cuisine" className="flex size-11 items-center justify-center rounded-full hover:bg-fond">
+        <button type="button" onClick={quitter} aria-label="Quitter le mode cuisine" className="flex size-11 items-center justify-center rounded-full hover:bg-fond">
           <X className="size-6" />
         </button>
         <div className="min-w-0 flex-1">
@@ -105,7 +105,7 @@ function Cuisine({ r }: { r: Recette }) {
             )}
           </p>
         </div>
-        <button
+        <button type="button"
           onClick={() => setIngredientsOuverts(true)}
           className="inline-flex h-11 items-center gap-2 rounded-full border border-bord bg-fond px-4 font-medium lg:hidden"
         >
@@ -121,7 +121,8 @@ function Cuisine({ r }: { r: Recette }) {
         </aside>
 
         {/* Étape en cours */}
-        <main
+        <section
+          aria-label="Étape en cours"
           className="relative min-w-0 flex-1 overflow-y-auto"
           onPointerDown={(e) => {
             depart.current = e.clientX
@@ -154,7 +155,7 @@ function Cuisine({ r }: { r: Recette }) {
                   {durees.length > 0 && (
                     <div className="mt-8 flex flex-wrap gap-3">
                       {durees.map((d) => (
-                        <button
+                        <button type="button"
                           key={d.secondes}
                           onClick={() => lancerMinuteur(d.libelle, d.secondes)}
                           className="inline-flex items-center gap-2 rounded-full border-2 border-primaire px-5 py-3 text-lg font-semibold text-primaire transition hover:bg-primaire hover:text-sur-primaire active:scale-95"
@@ -171,10 +172,10 @@ function Cuisine({ r }: { r: Recette }) {
                   <p className="mt-4 font-serif text-4xl font-semibold">Bon appétit !</p>
                   <p className="mt-2 text-texte-doux">Toutes les étapes sont terminées.</p>
                   <div className="mt-8 flex flex-wrap justify-center gap-3">
-                    <button onClick={() => aller(-total)} className="rounded-full border border-primaire px-6 py-3 font-medium text-primaire">
+                    <button type="button" onClick={() => aller(-total)} className="rounded-full border border-primaire px-6 py-3 font-medium text-primaire">
                       Recommencer
                     </button>
-                    <button onClick={quitter} className="rounded-full bg-primaire px-6 py-3 font-medium text-sur-primaire">
+                    <button type="button" onClick={quitter} className="rounded-full bg-primaire px-6 py-3 font-medium text-sur-primaire">
                       Revenir à la recette
                     </button>
                   </div>
@@ -182,7 +183,7 @@ function Cuisine({ r }: { r: Recette }) {
               )}
             </motion.div>
           </AnimatePresence>
-        </main>
+        </section>
       </div>
 
       {/* Navigation entre les étapes */}
@@ -193,14 +194,14 @@ function Cuisine({ r }: { r: Recette }) {
           ))}
         </div>
         <div className="mx-auto flex max-w-3xl gap-3">
-          <button
+          <button type="button"
             onClick={() => aller(-1)}
             disabled={n === 0}
             className="flex h-16 flex-1 items-center justify-center gap-2 rounded-2xl border border-bord bg-fond text-lg font-semibold transition active:scale-[0.98] disabled:opacity-40"
           >
             <ChevronLeft className="size-6" aria-hidden="true" /> Précédente
           </button>
-          <button
+          <button type="button"
             onClick={() => aller(1)}
             disabled={n === total}
             className="flex h-16 flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-primaire text-lg font-semibold text-sur-primaire transition active:scale-[0.98] disabled:opacity-40"
@@ -232,7 +233,7 @@ function Cuisine({ r }: { r: Recette }) {
               <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-bord" aria-hidden="true" />
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="font-serif text-2xl font-semibold">Ingrédients</h2>
-                <button onClick={() => setIngredientsOuverts(false)} aria-label="Fermer les ingrédients" className="rounded-full p-2 hover:bg-fond">
+                <button type="button" onClick={() => setIngredientsOuverts(false)} aria-label="Fermer les ingrédients" className="rounded-full p-2 hover:bg-fond">
                   <X className="size-5" />
                 </button>
               </div>

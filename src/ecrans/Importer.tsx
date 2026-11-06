@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { Link, useLocation } from 'wouter'
 import ApercuImport from '../composants/ApercuImport'
 import { useMessage } from '../composants/Messages'
+import ZoneRecadrage, { CADRE_ENTIER, type Cadre, estEntier } from '../composants/ZoneRecadrage'
 import { valeursDepuisImport } from '../domaine/formulaire'
 import { analyserCollage } from '../domaine/importSchema'
 import { analyserTexte, type RecetteAnalysee } from '../domaine/importTexte'
@@ -66,7 +67,7 @@ export default function Importer() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         {source ? (
-          <button onClick={recommencer} className="inline-flex items-center gap-1.5 text-primaire underline-offset-4 hover:underline">
+          <button type="button" onClick={recommencer} className="inline-flex items-center gap-1.5 text-primaire underline-offset-4 hover:underline">
             <ArrowLeft className="size-4" aria-hidden="true" /> Autre source
           </button>
         ) : (
@@ -82,7 +83,7 @@ export default function Importer() {
         <ul className="grid gap-3 sm:grid-cols-2">
           {SOURCES.map(({ source: s, titre, detail, Icone }) => (
             <li key={s}>
-              <button
+              <button type="button"
                 onClick={() => setSource(s)}
                 className="flex h-full w-full items-start gap-4 rounded-3xl border border-bord bg-surface p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primaire hover:shadow-md"
               >
@@ -346,7 +347,7 @@ function SourcePdf({ onTexte }: { onTexte: (t: string) => void }) {
       {etat ? (
         <Progression {...etat} />
       ) : (
-        <button onClick={() => champ.current?.click()} className={bouton}>
+        <button type="button" onClick={() => champ.current?.click()} className={bouton}>
           <FileText className="size-5" aria-hidden="true" /> Choisir un PDF
         </button>
       )}
@@ -376,16 +377,12 @@ function SourcePdf({ onTexte }: { onTexte: (t: string) => void }) {
 // Photo (reconnaissance de texte)
 // ————————————————————————————————————————————————————————————————
 
-type Cadre = { x: number; y: number; l: number; h: number }
-const CADRE_ENTIER: Cadre = { x: 0, y: 0, l: 1, h: 1 }
 
 function SourcePhoto({ onTexte, suite }: { onTexte: (t: string) => void; suite: boolean }) {
   const champ = useRef<HTMLInputElement>(null)
-  const zone = useRef<HTMLDivElement>(null)
   const [image, setImage] = useState<Blob | null>(null)
   const [url, setUrl] = useState<string>()
   const [cadre, setCadre] = useState<Cadre>(CADRE_ENTIER)
-  const depart = useRef<{ x: number; y: number } | null>(null)
   const [etat, setEtat] = useState<{ etape: string; avancement?: number } | null>(null)
   const [erreur, setErreur] = useState('')
 
@@ -395,11 +392,6 @@ function SourcePhoto({ onTexte, suite }: { onTexte: (t: string) => void; suite: 
     setUrl(u)
     return () => URL.revokeObjectURL(u)
   }, [image])
-
-  const position = (e: React.PointerEvent) => {
-    const r = zone.current!.getBoundingClientRect()
-    return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) }
-  }
 
   const tourner = async (sens: 90 | -90) => {
     if (!image) return
@@ -430,7 +422,7 @@ function SourcePhoto({ onTexte, suite }: { onTexte: (t: string) => void; suite: 
         bien sur une écriture manuscrite.
       </p>
       {!image && (
-        <button onClick={() => champ.current?.click()} className={bouton}>
+        <button type="button" onClick={() => champ.current?.click()} className={bouton}>
           <Camera className="size-5" aria-hidden="true" /> Prendre ou choisir une photo
         </button>
       )}
@@ -456,48 +448,23 @@ function SourcePhoto({ onTexte, suite }: { onTexte: (t: string) => void; suite: 
           <p className="flex items-center gap-2 text-sm font-medium">
             <Crop className="size-4 text-primaire" aria-hidden="true" /> Glissez le doigt sur la photo pour ne garder que la recette.
           </p>
-          <div
-            ref={zone}
-            className="relative touch-none overflow-hidden rounded-2xl border border-bord select-none"
-            onPointerDown={(e) => {
-              e.currentTarget.setPointerCapture(e.pointerId)
-              depart.current = position(e)
-            }}
-            onPointerMove={(e) => {
-              if (!depart.current) return
-              const p = position(e)
-              const d = depart.current
-              setCadre({ x: Math.min(d.x, p.x), y: Math.min(d.y, p.y), l: Math.abs(p.x - d.x), h: Math.abs(p.y - d.y) })
-            }}
-            onPointerUp={() => {
-              depart.current = null
-              setCadre((c) => (c.l < 0.05 || c.h < 0.05 ? CADRE_ENTIER : c))
-            }}
-          >
-            <img src={url} alt="Photo de la recette à lire" className="block max-h-[60vh] w-full object-contain" draggable={false} />
-            {(cadre.l < 1 || cadre.h < 1) && (
-              <div
-                className="pointer-events-none absolute border-2 border-dore shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]"
-                style={{ left: `${cadre.x * 100}%`, top: `${cadre.y * 100}%`, width: `${cadre.l * 100}%`, height: `${cadre.h * 100}%` }}
-              />
-            )}
-          </div>
+          <ZoneRecadrage url={url} cadre={cadre} onCadre={setCadre} description="Photo de la recette à lire" />
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => void tourner(-90)} aria-label="Tourner vers la gauche" className="rounded-full border border-bord p-2.5 hover:border-primaire">
+            <button type="button" onClick={() => void tourner(-90)} aria-label="Tourner vers la gauche" className="rounded-full border border-bord p-2.5 hover:border-primaire">
               <RotateCcw className="size-5" />
             </button>
-            <button onClick={() => void tourner(90)} aria-label="Tourner vers la droite" className="rounded-full border border-bord p-2.5 hover:border-primaire">
+            <button type="button" onClick={() => void tourner(90)} aria-label="Tourner vers la droite" className="rounded-full border border-bord p-2.5 hover:border-primaire">
               <RotateCw className="size-5" />
             </button>
-            {(cadre.l < 1 || cadre.h < 1) && (
-              <button onClick={() => setCadre(CADRE_ENTIER)} className="rounded-full px-3 text-sm font-medium text-texte-doux hover:text-texte">
+            {!estEntier(cadre) && (
+              <button type="button" onClick={() => setCadre(CADRE_ENTIER)} className="rounded-full px-3 text-sm font-medium text-texte-doux hover:text-texte">
                 Photo entière
               </button>
             )}
-            <button onClick={() => champ.current?.click()} className="rounded-full px-3 text-sm font-medium text-primaire">
+            <button type="button" onClick={() => champ.current?.click()} className="rounded-full px-3 text-sm font-medium text-primaire">
               Autre photo
             </button>
-            <button onClick={() => void lire()} className={`${bouton} ml-auto`}>
+            <button type="button" onClick={() => void lire()} className={`${bouton} ml-auto`}>
               <ScanText className="size-5" aria-hidden="true" /> Lire le texte
             </button>
           </div>
@@ -530,7 +497,7 @@ function SourceCarnet({ onFini }: { onFini: (message: string) => void }) {
     <Bloc>
       <h2 className="font-serif text-2xl font-semibold">Importer un carnet Quanto</h2>
       <p className="text-sm text-texte-doux">Le fichier .zip d'un autre appareil (ou d'une sauvegarde). Ses recettes s'ajoutent aux vôtres, sans doublon.</p>
-      <button disabled={enCours} onClick={() => champ.current?.click()} className={bouton}>
+      <button type="button" disabled={enCours} onClick={() => champ.current?.click()} className={bouton}>
         <Archive className="size-5" aria-hidden="true" /> {enCours ? 'Import en cours…' : 'Choisir le fichier'}
       </button>
       <input

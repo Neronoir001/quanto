@@ -85,7 +85,7 @@ export default function ListeRecettes() {
           {(['grille', 'liste'] as const).map((mode) => {
             const Icone = mode === 'grille' ? LayoutGrid : List
             return (
-              <button
+              <button type="button"
                 key={mode}
                 role="radio"
                 aria-checked={affichage.mode === mode}
@@ -116,7 +116,7 @@ export default function ListeRecettes() {
             className="w-full rounded-full border border-bord bg-surface py-3 pr-11 pl-12 text-base shadow-sm placeholder:text-texte-doux/80 focus:border-primaire focus:outline-none"
           />
           {criteres.texte && (
-            <button
+            <button type="button"
               onClick={() => maj({ texte: '' })}
               aria-label="Effacer la recherche"
               className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1.5 text-texte-doux hover:text-texte"
@@ -125,7 +125,7 @@ export default function ListeRecettes() {
             </button>
           )}
         </div>
-        <button
+        <button type="button"
           onClick={() => setFiltresOuverts((o) => !o)}
           aria-expanded={filtresOuverts}
           aria-controls="panneau-filtres"
@@ -224,7 +224,7 @@ export default function ListeRecettes() {
                   </select>
                 </label>
                 {nbFiltres > 0 && (
-                  <button onClick={() => maj({ ...CRITERES_VIDES, texte: criteres.texte, tri: criteres.tri })} className="text-primaire underline underline-offset-4">
+                  <button type="button" onClick={() => maj({ ...CRITERES_VIDES, texte: criteres.texte, tri: criteres.tri })} className="text-primaire underline underline-offset-4">
                     Effacer les filtres
                   </button>
                 )}
@@ -242,7 +242,7 @@ export default function ListeRecettes() {
         <div className="rounded-3xl border border-dashed border-bord py-16 text-center">
           <p className="font-serif text-2xl">Aucune recette trouvée</p>
           <p className="mt-2 text-texte-doux">Essayez un autre mot ou retirez des filtres.</p>
-          <button onClick={() => setCriteres({ ...CRITERES_VIDES, tri: criteres.tri })} className="mt-4 text-primaire underline underline-offset-4">
+          <button type="button" onClick={() => setCriteres({ ...CRITERES_VIDES, tri: criteres.tri })} className="mt-4 text-primaire underline underline-offset-4">
             Tout afficher
           </button>
         </div>
@@ -299,7 +299,7 @@ function Bienvenue() {
         <Link href="/nouvelle" className="inline-flex items-center gap-2 rounded-full bg-primaire px-6 py-3 font-medium text-sur-primaire shadow-sm transition hover:opacity-90">
           <Plus className="size-5" aria-hidden="true" /> Créer ma première recette
         </Link>
-        <button
+        <button type="button"
           disabled={enCours}
           onClick={async () => {
             setEnCours(true)

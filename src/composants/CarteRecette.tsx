@@ -53,7 +53,7 @@ export function CarteRecette({ r, onFavori }: { r: Recette; onFavori: (r: Recett
           </span>
         </div>
         <div className="p-4">
-          <h3 className="font-serif text-xl leading-snug font-semibold">{r.titre}</h3>
+          <h2 className="font-serif text-xl leading-snug font-semibold">{r.titre}</h2>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
             {total > 0 && (
               <span className={meta}>
@@ -95,7 +95,7 @@ export function LigneRecette({ r, onFavori }: { r: Recette; onFavori: (r: Recett
       <Link href={`/recette/${r.id}`} className="flex min-w-0 flex-1 items-center gap-4 rounded-2xl p-2.5">
         <VisuelRecette url={photo} categorie={r.categorie} taille="petite" className="size-16 shrink-0 rounded-xl" />
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-serif text-lg font-semibold">{r.titre}</h3>
+          <h2 className="truncate font-serif text-lg font-semibold">{r.titre}</h2>
           <div className="mt-0.5 flex flex-wrap gap-x-3">
             <span className={meta}>{LIBELLES_CATEGORIES[r.categorie]}</span>
             {total > 0 && (

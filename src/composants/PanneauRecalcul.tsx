@@ -83,7 +83,7 @@ export default function PanneauRecalcul({ reference, cible, ratio, onCible }: Pr
       {personnesRef && avecContenant && (
         <div role="radiogroup" aria-label="Recalculer selon" className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-fond p-1">
           {(['personnes', 'contenant'] as const).map((mode) => (
-            <button
+            <button type="button"
               key={mode}
               role="radio"
               aria-checked={cible.mode === mode}
@@ -159,7 +159,7 @@ export default function PanneauRecalcul({ reference, cible, ratio, onCible }: Pr
       )}
 
       {modifie && (
-        <button
+        <button type="button"
           onClick={() => onCible(auDepart())}
           className="mt-4 text-primaire underline underline-offset-4 hover:no-underline"
         >
@@ -172,7 +172,7 @@ export default function PanneauRecalcul({ reference, cible, ratio, onCible }: Pr
 
 function BoutonRond({ libelle, onClick, children }: { libelle: string; onClick: () => void; children: string }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       aria-label={libelle}
       className="flex size-12 items-center justify-center rounded-full border border-primaire text-2xl text-primaire transition hover:bg-primaire hover:text-sur-primaire active:scale-95"
@@ -257,7 +257,7 @@ function ChoixContenant({
         <p className="mb-2 font-medium">Mon moule</p>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Type de contenant">
           {TYPES.map((t) => (
-            <button
+            <button type="button"
               key={t}
               role="radio"
               aria-checked={contenant.type === t}
@@ -365,7 +365,7 @@ function ChoixContenant({
         <p className="mb-2 text-sm text-texte-doux">Moules courants</p>
         <div className="flex flex-wrap gap-2">
           {MOULES_COURANTS.map((m) => (
-            <button
+            <button type="button"
               key={libelleCourt(m)}
               onClick={() => choisir(m)}
               aria-pressed={memesDimensions(m, contenant)}

@@ -12,6 +12,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Quanto" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <script>
+      try {
+        var t = localStorage.getItem('quanto.theme')
+        if (t === 'clair' || t === 'sombre') document.documentElement.dataset.theme = t
+        var x = localStorage.getItem('quanto.texte')
+        if (x === 'grand' || x === 'tres-grand') document.documentElement.dataset.texte = x
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

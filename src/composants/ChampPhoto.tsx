@@ -1,9 +1,10 @@
-import { Camera, Link2, X } from 'lucide-react'
+import { Camera, Crop, Link2, X } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 import type { Categorie } from '../domaine/modele'
 import { base } from '../donnees/base'
 import { enregistrerPhoto, telechargerImage, usePhoto } from '../donnees/photos'
 import { VisuelRecette } from './Categorie'
+import EditeurPhoto from './EditeurPhoto'
 
 interface Props {
   photoId: string
@@ -20,12 +21,16 @@ export default function ChampPhoto({ photoId, categorie, onChange }: Props) {
   const [erreur, setErreur] = useState('')
   const [adresseOuverte, setAdresseOuverte] = useState(false)
   const [adresse, setAdresse] = useState('')
+  const [aRetoucher, setARetoucher] = useState<Blob | null>(null)
 
+  /** Récupère l'image, puis ouvre la retouche (recadrage, rotation). */
   const traiter = async (source: () => Promise<Blob>) => {
     setErreur('')
     setEnCours(true)
     try {
-      onChange(await enregistrerPhoto(base, await source()))
+      const image = await source()
+      if (!image.type.startsWith('image/')) throw new Error("Ce fichier n'est pas une image.")
+      setARetoucher(image)
       setAdresseOuverte(false)
       setAdresse('')
     } catch (e) {
@@ -56,6 +61,19 @@ export default function ChampPhoto({ photoId, categorie, onChange }: Props) {
         <button type="button" disabled={enCours} onClick={() => setAdresseOuverte((o) => !o)} aria-expanded={adresseOuverte} className={bouton}>
           <Link2 className="size-4" aria-hidden="true" /> Depuis une adresse web
         </button>
+        {url && (
+          <button
+            type="button"
+            disabled={enCours}
+            onClick={async () => {
+              const photo = await base.photos.get(photoId)
+              if (photo) setARetoucher(photo.image)
+            }}
+            className={bouton}
+          >
+            <Crop className="size-4" aria-hidden="true" /> Recadrer
+          </button>
+        )}
         {url && (
           <button type="button" onClick={() => onChange('')} className={bouton}>
             <X className="size-4" aria-hidden="true" /> Retirer
@@ -104,6 +122,23 @@ export default function ChampPhoto({ photoId, categorie, onChange }: Props) {
         <p role="alert" className="mt-2 text-sm text-alerte">
           {erreur}
         </p>
+      )}
+      {aRetoucher && (
+        <EditeurPhoto
+          source={aRetoucher}
+          onAnnuler={() => setARetoucher(null)}
+          onValider={async (photo) => {
+            setARetoucher(null)
+            setEnCours(true)
+            try {
+              onChange(await enregistrerPhoto(base, photo))
+            } catch (e) {
+              setErreur(e instanceof Error ? e.message : 'Impossible d’ajouter cette photo.')
+            } finally {
+              setEnCours(false)
+            }
+          }}
+        />
       )}
     </div>
   )

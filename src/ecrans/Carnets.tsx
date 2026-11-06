@@ -132,13 +132,13 @@ function Ligne({ c, nombre, onSupprimer, onPartager }: { c: Collection; nombre: 
         )}
         {!edition && (
           <>
-            <button onClick={() => setEdition(true)} aria-label={`Renommer ${c.nom}`} className={action}>
+            <button type="button" onClick={() => setEdition(true)} aria-label={`Renommer ${c.nom}`} className={action}>
               <Pencil className="size-4" />
             </button>
-            <button onClick={onPartager} aria-label={`Partager le carnet ${c.nom}`} className={action}>
+            <button type="button" onClick={onPartager} aria-label={`Partager le carnet ${c.nom}`} className={action}>
               <Share2 className="size-4" />
             </button>
-            <button onClick={onSupprimer} aria-label={`Supprimer le carnet ${c.nom}`} className={action}>
+            <button type="button" onClick={onSupprimer} aria-label={`Supprimer le carnet ${c.nom}`} className={action}>
               <Trash className="size-4" />
             </button>
           </>
@@ -146,7 +146,7 @@ function Ligne({ c, nombre, onSupprimer, onPartager }: { c: Collection; nombre: 
       </div>
       <div className="mt-3 flex gap-2 pl-7" role="radiogroup" aria-label={`Couleur du carnet ${c.nom}`}>
         {COULEURS_CARNETS.map((couleur) => (
-          <button
+          <button type="button"
             key={couleur}
             role="radio"
             aria-checked={c.couleur === couleur}

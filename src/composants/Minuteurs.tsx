@@ -83,7 +83,7 @@ export default function Minuteurs({ minuteurs, onChange }: { minuteurs: Minuteur
               <span className="text-sm font-medium">{m.libelle}</span>
               <span className="min-w-[4.5rem] text-center font-mono text-xl font-semibold tabular-nums">{fini ? 'Terminé !' : formaterRestant(restant)}</span>
               {!fini && (
-                <button
+                <button type="button"
                   onClick={() => maj(m.id, m.fin === null ? { fin: Date.now() + m.restant * 1000 } : { fin: null, restant })}
                   aria-label={m.fin === null ? `Reprendre le minuteur ${m.libelle}` : `Mettre en pause le minuteur ${m.libelle}`}
                   className="rounded-full p-2 hover:bg-fond"
@@ -91,7 +91,7 @@ export default function Minuteurs({ minuteurs, onChange }: { minuteurs: Minuteur
                   {m.fin === null ? <Play className="size-4" /> : <Pause className="size-4" />}
                 </button>
               )}
-              <button
+              <button type="button"
                 onClick={() => onChange(minuteurs.filter((x) => x.id !== m.id))}
                 aria-label={`Arrêter le minuteur ${m.libelle}`}
                 className={`rounded-full p-2 ${fini ? 'hover:bg-white/20' : 'hover:bg-fond'}`}

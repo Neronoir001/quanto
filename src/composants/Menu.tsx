@@ -47,7 +47,7 @@ export default function Menu({ elements, libelle = "Plus d'actions" }: { element
 
   return (
     <div ref={racine} className="relative">
-      <button
+      <button type="button"
         ref={bouton}
         onClick={() => setOuvert((o) => !o)}
         aria-haspopup="menu"
@@ -73,7 +73,7 @@ export default function Menu({ elements, libelle = "Plus d'actions" }: { element
           >
             {elements.map(({ libelle: l, Icone, action, dangereux }) => (
               <li key={l} role="none">
-                <button
+                <button type="button"
                   role="menuitem"
                   onClick={() => {
                     setOuvert(false)

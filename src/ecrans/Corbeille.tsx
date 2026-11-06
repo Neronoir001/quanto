@@ -47,7 +47,7 @@ function Ligne({ r }: { r: Recette }) {
           Effacée dans {restants} jour{restants > 1 ? 's' : ''}
         </p>
       </div>
-      <button
+      <button type="button"
         onClick={async () => {
           await restaurerRecette(base, r.id)
           afficher(`« ${r.titre} » est de retour dans vos recettes.`)

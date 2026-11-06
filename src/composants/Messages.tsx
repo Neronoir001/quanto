@@ -56,7 +56,7 @@ export function FournisseurMessages({ children }: { children: ReactNode }) {
             >
               <span className="flex-1">{m.texte}</span>
               {m.action && (
-                <button
+                <button type="button"
                   onClick={() => {
                     m.action!.faire()
                     fermer(m.id)
@@ -66,7 +66,7 @@ export function FournisseurMessages({ children }: { children: ReactNode }) {
                   {m.action.libelle}
                 </button>
               )}
-              <button onClick={() => fermer(m.id)} aria-label="Fermer le message" className="rounded-full p-1 opacity-70 hover:opacity-100">
+              <button type="button" onClick={() => fermer(m.id)} aria-label="Fermer le message" className="rounded-full p-1 opacity-70 hover:opacity-100">
                 <X className="size-4" />
               </button>
             </motion.div>

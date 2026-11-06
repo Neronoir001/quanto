@@ -1,7 +1,7 @@
 {
   "name": "quanto",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -44,6 +44,7 @@
     "@types/react-dom": "^19.3.0",
     "@vite-pwa/assets-generator": "^2.0.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "axe-core": "^4.14.0",
     "fake-indexeddb": "^6.2.7",
     "oxlint": "^1.89.0",
     "tailwindcss": "^4.3.4",
