@@ -314,6 +314,13 @@ function Bienvenue() {
           <Import className="size-5" aria-hidden="true" /> Importer une recette
         </Link>
       </div>
+      <p className="mt-6 text-texte-doux">
+        Première fois ?{' '}
+        <Link href="/aide" className="font-medium text-primaire underline underline-offset-4">
+          Découvrez le guide d'utilisation
+        </Link>
+        .
+      </p>
     </div>
   )
 }

@@ -7,7 +7,7 @@ const ONGLETS = [
   { href: '/', libelle: 'Recettes', Icone: BookOpen, actif: (p: string) => p === '/' || p.startsWith('/recette/') },
   { href: '/nouvelle', libelle: 'Nouvelle', Icone: Plus, actif: (p: string) => p === '/nouvelle' },
   { href: '/synchro', libelle: 'Synchro', Icone: ArrowLeftRight, actif: (p: string) => p === '/synchro' },
-  { href: '/reglages', libelle: 'Réglages', Icone: Settings, actif: (p: string) => p.startsWith('/reglages') || p === '/corbeille' || p === '/carnets' },
+  { href: '/reglages', libelle: 'Réglages', Icone: Settings, actif: (p: string) => p.startsWith('/reglages') || p === '/corbeille' || p === '/carnets' || p === '/aide' },
 ]
 
 /** Structure commune : en-tête (ordinateur), barre d'onglets en bas (téléphone). */

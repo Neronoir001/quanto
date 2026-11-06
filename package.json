@@ -1,7 +1,7 @@
 {
   "name": "quanto",
   "private": true,
-  "version": "0.8.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -47,6 +47,7 @@
     "axe-core": "^4.14.0",
     "fake-indexeddb": "^6.2.7",
     "oxlint": "^1.89.0",
+    "playwright-core": "^1.65.0",
     "tailwindcss": "^4.3.4",
     "typescript": "~7.0.2",
     "vite": "^8.3.5",

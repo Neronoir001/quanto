@@ -19,6 +19,7 @@ const FormulaireRecette = lazy(() => import('./ecrans/FormulaireRecette'))
 const Synchronisation = lazy(() => import('./ecrans/Synchronisation'))
 const Importer = lazy(() => import('./ecrans/Importer'))
 const ModeCuisine = lazy(() => import('./ecrans/ModeCuisine'))
+const Aide = lazy(() => import('./ecrans/Aide'))
 
 /** Remonte en haut de page à chaque changement d'écran. */
 function RetourEnHaut() {
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="/reglages" component={Reglages} />
               <Route path="/corbeille" component={Corbeille} />
               <Route path="/carnets" component={Carnets} />
+              <Route path="/aide" component={Aide} />
               <Route path="/synchro" component={Synchronisation} />
               <Route>
                 <p className="py-20 text-center text-texte-doux">Cette page n'existe pas.</p>

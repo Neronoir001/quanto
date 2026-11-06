@@ -1,4 +1,4 @@
-import { Bookmark, ChevronRight, HardDrive, Library, Sparkles, Trash, Wifi } from 'lucide-react'
+import { Bookmark, ChevronRight, CircleHelp, HardDrive, Library, Sparkles, Trash, Wifi } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Link } from 'wouter'
 import { useMessage } from '../composants/Messages'
@@ -22,6 +22,18 @@ export default function Reglages() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="font-serif text-4xl font-semibold">Réglages</h1>
+
+      <Link
+        href="/aide"
+        className="flex items-center gap-4 rounded-3xl border border-dore bg-dore-fond p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      >
+        <CircleHelp className="size-8 shrink-0 text-primaire" aria-hidden="true" />
+        <span className="flex-1">
+          <span className="block font-serif text-xl font-semibold">Aide et guide d'utilisation</span>
+          <span className="block text-sm text-texte-doux">Installer, importer, recalculer, synchroniser, sauvegarder…</span>
+        </span>
+        <ChevronRight className="size-5 text-texte-doux" aria-hidden="true" />
+      </Link>
 
       <Bloc titre="Cet appareil">
         <NomAppareil />
