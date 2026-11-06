@@ -1,7 +1,9 @@
+import { Star, X } from 'lucide-react'
 import { useId, useState } from 'react'
 import {
   type Contenant,
   decrireContenant,
+  estComplet,
   estSurface,
   HAUTEUR_PAR_DEFAUT,
   LIBELLES_TYPES,
@@ -10,6 +12,9 @@ import {
 } from '../domaine/contenants'
 import { formaterRatio, nombre } from '../domaine/format'
 import type { Cible, Reference } from '../domaine/recalcul'
+import { base } from '../donnees/base'
+import { memesDimensions, memoriserMoule, oublierMoule, useMesMoules } from '../donnees/moules'
+import { useMessage } from './Messages'
 
 interface Props {
   reference: Reference
@@ -28,7 +33,7 @@ const PAR_DEFAUT: Record<TypeContenant, Contenant> = {
   volume: { type: 'volume', volume: 1.5 },
 }
 
-function libelleCourt(c: Contenant): string {
+export function libelleCourt(c: Contenant): string {
   switch (c.type) {
     case 'rond':
       return `Rond ${c.diametre}`
@@ -42,8 +47,6 @@ function libelleCourt(c: Contenant): string {
       return `${nombre(c.volume ?? 0, 2)} L`
   }
 }
-
-const memeContenant = (a: Contenant, b: Contenant) => JSON.stringify(a) === JSON.stringify(b)
 
 export default function PanneauRecalcul({ reference, cible, ratio, onCible }: Props) {
   const idPersonnes = useId()
@@ -150,7 +153,8 @@ export default function PanneauRecalcul({ reference, cible, ratio, onCible }: Pr
         <ChoixContenant
           reference={reference.contenant}
           contenant={cible.contenant}
-          onChange={(contenant) => onCible({ mode: 'contenant', contenant })}
+          hauteurReference={cible.hauteurReference}
+          onChange={(contenant, hauteurReference) => onCible({ mode: 'contenant', contenant, hauteurReference })}
         />
       )}
 
@@ -181,21 +185,73 @@ function BoutonRond({ libelle, onClick, children }: { libelle: string; onClick: 
 function ChoixContenant({
   reference,
   contenant,
+  hauteurReference,
   onChange,
 }: {
   reference: Contenant
   contenant: Contenant
-  onChange: (c: Contenant) => void
+  hauteurReference?: number
+  onChange: (c: Contenant, hauteurReference?: number) => void
 }) {
-  const changerType = (type: TypeContenant) =>
-    onChange(type === reference.type ? { ...reference } : { ...PAR_DEFAUT[type] })
-  const maj = (champ: keyof Contenant, valeur: number | undefined) => onChange({ ...contenant, [champ]: valeur })
+  const afficher = useMessage()
+  const mesMoules = useMesMoules()
+  const [nommer, setNommer] = useState(false)
+  const [nom, setNom] = useState('')
+  const idNom = useId()
+
+  const choisir = (c: Contenant) => onChange({ ...c }, hauteurReference)
+  const changerType = (type: TypeContenant) => choisir(type === reference.type ? reference : PAR_DEFAUT[type])
+  const maj = (champ: keyof Contenant, valeur: number | undefined) => onChange({ ...contenant, [champ]: valeur }, hauteurReference)
+
+  const mixte = estSurface(reference.type) !== estSurface(contenant.type)
+  const dejaMemorise = mesMoules.some((m) => memesDimensions(m.contenant, contenant))
+  const memorisable = estComplet(contenant) && !dejaMemorise && !memesDimensions(contenant, reference)
+
+  const memoriser = async () => {
+    await memoriserMoule(base, contenant, nom)
+    afficher(`« ${nom.trim() || libelleCourt(contenant)} » ajouté à Mes moules.`)
+    setNommer(false)
+    setNom('')
+  }
+
+  const puce = (actif: boolean) =>
+    `rounded-full border px-3 py-1.5 text-sm transition ${
+      actif ? 'border-dore bg-dore-fond font-semibold' : 'border-bord text-texte-doux hover:border-dore hover:text-texte'
+    }`
 
   return (
     <div className="mt-5 space-y-4">
       <p className="text-texte-doux">
         Recette prévue pour un <strong className="text-texte">{decrireContenant(reference)}</strong>
       </p>
+
+      {mesMoules.length > 0 && (
+        <div>
+          <p className="mb-2 flex items-center gap-1.5 font-medium">
+            <Star className="size-4 fill-dore text-dore" aria-hidden="true" /> Mes moules
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {mesMoules.map((m) => {
+              const actif = memesDimensions(m.contenant, contenant)
+              return (
+                <li key={m.id} className={`inline-flex items-center ${puce(actif)} py-0 pr-1 pl-0`}>
+                  <button type="button" onClick={() => choisir(m.contenant)} aria-pressed={actif} className="py-1.5 pr-1 pl-3">
+                    {m.nom ? `${m.nom} · ${libelleCourt(m.contenant)}` : libelleCourt(m.contenant)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void oublierMoule(base, m.id)}
+                    aria-label={`Retirer ${m.nom ?? libelleCourt(m.contenant)} de Mes moules`}
+                    className="rounded-full p-1 opacity-60 hover:bg-surface hover:opacity-100"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       <div>
         <p className="mb-2 font-medium">Mon moule</p>
@@ -218,7 +274,7 @@ function ChoixContenant({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-3">
         {contenant.type === 'rond' && (
           <Champ libelle="Diamètre" unite="cm" valeur={contenant.diametre} onChange={(v) => maj('diametre', v)} />
         )}
@@ -237,7 +293,7 @@ function ChoixContenant({
         {contenant.type === 'volume' && (
           <Champ libelle="Volume" unite="L" valeur={contenant.volume} onChange={(v) => maj('volume', v)} />
         )}
-        {estSurface(contenant.type) && !estSurface(reference.type) && (
+        {mixte && estSurface(contenant.type) && (
           <Champ
             libelle="Hauteur"
             unite="cm"
@@ -246,7 +302,64 @@ function ChoixContenant({
             onChange={(v) => maj('hauteur', v)}
           />
         )}
+        {mixte && estSurface(reference.type) && !reference.hauteur && (
+          <Champ
+            libelle="Hauteur d’origine"
+            unite="cm"
+            valeur={hauteurReference}
+            placeholder={String(HAUTEUR_PAR_DEFAUT)}
+            onChange={(v) => onChange(contenant, v)}
+          />
+        )}
       </div>
+
+      <p className="text-sm text-texte-doux">
+        {mixte
+          ? `Calcul selon les volumes : un moule plat sans hauteur indiquée est compté avec ${HAUTEUR_PAR_DEFAUT} cm.`
+          : estSurface(contenant.type)
+            ? 'Calcul selon la surface du fond des moules.'
+            : 'Calcul selon les volumes.'}
+      </p>
+
+      {memorisable &&
+        (nommer ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              void memoriser()
+            }}
+            className="flex flex-wrap items-end gap-2 rounded-2xl border border-dore bg-dore-fond p-3"
+          >
+            <div className="min-w-0 flex-1">
+              <label htmlFor={idNom} className="mb-1 block text-sm font-medium">
+                Nom du moule (facultatif)
+              </label>
+              <input
+                id={idNom}
+                value={nom}
+                onChange={(e) => setNom(e.target.value)}
+                maxLength={30}
+                placeholder="Ex. : moule de mamie"
+                autoFocus
+                className="w-full rounded-xl border border-bord bg-surface px-3 py-2"
+              />
+            </div>
+            <button type="submit" className="rounded-full bg-primaire px-4 py-2 font-medium text-sur-primaire">
+              Mémoriser
+            </button>
+            <button type="button" onClick={() => setNommer(false)} className="px-2 py-2 text-texte-doux">
+              Annuler
+            </button>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setNommer(true)}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primaire underline-offset-4 hover:underline"
+          >
+            <Star className="size-4" aria-hidden="true" /> Mémoriser ce moule dans « Mes moules »
+          </button>
+        ))}
 
       <div>
         <p className="mb-2 text-sm text-texte-doux">Moules courants</p>
@@ -254,13 +367,9 @@ function ChoixContenant({
           {MOULES_COURANTS.map((m) => (
             <button
               key={libelleCourt(m)}
-              onClick={() => onChange({ ...m })}
-              aria-pressed={memeContenant(m, contenant)}
-              className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                memeContenant(m, contenant)
-                  ? 'border-dore bg-dore-fond font-semibold'
-                  : 'border-bord text-texte-doux hover:border-dore hover:text-texte'
-              }`}
+              onClick={() => choisir(m)}
+              aria-pressed={memesDimensions(m, contenant)}
+              className={puce(memesDimensions(m, contenant))}
             >
               {libelleCourt(m)}
             </button>

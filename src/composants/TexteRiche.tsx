@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Ingredient, NoeudRiche } from '../domaine/modele'
+import { accorderPremierMot } from '../domaine/accord'
 import { type QuantiteCalculee, recalculerQuantite } from '../domaine/recalcul'
 import { attributsQuantite, sourceDeQuantite } from '../domaine/texteRiche'
 
@@ -34,7 +35,7 @@ export default function TexteRiche({ doc, ratio, ingredients, surbrillance }: Pr
       case 'paragraph':
         return (
           <p key={cle} className="leading-relaxed [&:not(:first-child)]:mt-2">
-            {(n.content ?? []).map((c, i) => rendre(c, `${cle}-${i}`))}
+            {accorderApresPieces(n.content ?? []).map((c, i) => rendre(c, `${cle}-${i}`))}
           </p>
         )
       case 'hardBreak':
@@ -57,5 +58,17 @@ export default function TexteRiche({ doc, ratio, ingredients, surbrillance }: Pr
         return (n.content ?? []).map((c, i) => rendre(c, `${cle}-${i}`))
     }
   }
+  /** « 3 œufs » recalculé en « 1 » : le mot qui suit devient « œuf ». */
+  const accorderApresPieces = (contenu: NoeudRiche[]): NoeudRiche[] =>
+    contenu.map((n, i) => {
+      const precedent = i > 0 ? contenu[i - 1] : undefined
+      if (n.type !== 'text' || !n.text || precedent?.type !== 'quantite') return n
+      const a = attributsQuantite(precedent)
+      const ingredient = a?.ingredientId ? ingredients.find((x) => x.id === a.ingredientId) : undefined
+      if (!a || a.unite !== 'piece' || !ingredient) return n
+      const pieces = recalculerQuantite(sourceDeQuantite(a, ingredients), ratio).nombrePieces
+      return pieces === undefined ? n : { ...n, text: accorderPremierMot(n.text, ingredient.nom, pieces) }
+    })
+
   return <>{rendre(doc, 'r')}</>
 }

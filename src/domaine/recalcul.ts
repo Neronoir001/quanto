@@ -30,6 +30,8 @@ export interface QuantiteCalculee {
   equivalent?: string
   /** Remarque : « à ajuster », « quantité fixe », « à doser selon le goût ». */
   note?: string
+  /** Pour les pièces : nombre affiché (borne haute d'une fourchette), pour accorder le nom. */
+  nombrePieces?: number
 }
 
 // ————————————————————————————————————————————————————————————————
@@ -154,7 +156,11 @@ export const SEUILS_ASSAISONNEMENT = { bas: 0.7, haut: 1.5 }
 // Recalcul d'une quantité
 // ————————————————————————————————————————————————————————————————
 
-function texteSimple(q: QuantiteSource, ratio: number, u: Unite): { texte: string; approximative: boolean; equivalent?: string } {
+function texteSimple(
+  q: QuantiteSource,
+  ratio: number,
+  u: Unite,
+): { texte: string; approximative: boolean; equivalent?: string; nombrePieces?: number } {
   const valeur = (q.valeur ?? 0) * ratio
 
   // Pièces sans fourchette saisie : fourchette « 2 à 3 » si on tombe entre deux.
@@ -164,29 +170,38 @@ function texteSimple(q: QuantiteSource, ratio: number, u: Unite): { texte: strin
     const oeuf = q.nom ? grammesParOeuf(q.nom) : null
     let texte: string
     let approximative: boolean
+    let nombrePieces: number
     if (valeur < 1) {
       texte = `1${u.singulier ? INSECABLE + u.singulier : ''}`
       approximative = valeur < 0.95
+      nombrePieces = 1
     } else if (reste >= 0.25 && reste <= 0.75) {
       texte = assemblerFourchette(
         { nombre: String(entier), unite: libelle(u, entier + 1), approximative: true },
         { nombre: String(entier + 1), unite: libelle(u, entier + 1), approximative: true },
       )
       approximative = true
+      nombrePieces = entier + 1
     } else {
       const r = Math.round(valeur)
       texte = assembler({ nombre: String(r), unite: libelle(u, r), approximative: false })
       approximative = Math.abs(r - valeur) > 0.05
+      nombrePieces = r
     }
     const equivalent =
       oeuf && approximative ? `≈${INSECABLE}${nombre(Math.round(valeur * oeuf.grammes), 0)}${INSECABLE}g${oeuf.suffixe}` : undefined
-    return { texte, approximative, equivalent }
+    return { texte, approximative, equivalent, nombrePieces }
   }
 
   const bas = rendre(valeur, u)
-  if (q.valeurMax === undefined) return { texte: assembler(bas), approximative: bas.approximative }
+  const pieces = (r: Rendu) => (u.famille === 'piece' ? Number(r.nombre) : undefined)
+  if (q.valeurMax === undefined) return { texte: assembler(bas), approximative: bas.approximative, nombrePieces: pieces(bas) }
   const haut = rendre(q.valeurMax * ratio, u)
-  return { texte: assemblerFourchette(bas, haut), approximative: bas.approximative || haut.approximative }
+  return {
+    texte: assemblerFourchette(bas, haut),
+    approximative: bas.approximative || haut.approximative,
+    nombrePieces: pieces(haut),
+  }
 }
 
 /**
@@ -208,7 +223,13 @@ export function recalculerQuantite(q: QuantiteSource, ratio: number): QuantiteCa
     return { texte: origine.texte, modifiee: false, approximative: false, note: change ? 'à ajuster' : undefined }
   }
   if (q.recalcul === 'fixe') {
-    return { texte: origine.texte, modifiee: false, approximative: false, note: change ? 'quantité fixe' : undefined }
+    return {
+      texte: origine.texte,
+      modifiee: false,
+      approximative: false,
+      note: change ? 'quantité fixe' : undefined,
+      nombrePieces: origine.nombrePieces,
+    }
   }
 
   const calcul = texteSimple(q, ratio, u)
@@ -223,6 +244,7 @@ export function recalculerQuantite(q: QuantiteSource, ratio: number): QuantiteCa
     approximative: calcul.approximative,
     equivalent: calcul.equivalent,
     note: assaisonnement ? 'à doser selon le goût' : undefined,
+    nombrePieces: calcul.nombrePieces,
   }
 }
 
@@ -235,7 +257,14 @@ export interface Reference {
   contenant?: Contenant
 }
 
-export type Cible = { mode: 'personnes'; personnes: number } | { mode: 'contenant'; contenant: Contenant }
+export type Cible =
+  | { mode: 'personnes'; personnes: number }
+  | {
+      mode: 'contenant'
+      contenant: Contenant
+      /** Hauteur du moule de la recette, si l'utilisateur la précise (sinon 5 cm par défaut). */
+      hauteurReference?: number
+    }
 
 /** Coefficient entre la référence de la recette et la cible choisie. `null` si incalculable. */
 export function calculerRatio(reference: Reference, cible: Cible): number | null {
@@ -244,7 +273,8 @@ export function calculerRatio(reference: Reference, cible: Cible): number | null
     return cible.personnes / reference.personnes
   }
   if (!reference.contenant) return null
-  return ratioContenants(reference.contenant, cible.contenant)
+  const ref = cible.hauteurReference ? { ...reference.contenant, hauteur: cible.hauteurReference } : reference.contenant
+  return ratioContenants(ref, cible.contenant)
 }
 
 export const SEUILS_CUISSON = { bas: 0.8, haut: 1.25 }

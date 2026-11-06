@@ -95,3 +95,15 @@ describe('Stockage des recettes', () => {
     expect(await db.effacements.get(r.id)).toBeDefined()
   })
 })
+
+describe('Mes moules', () => {
+  it('mémorise un moule sans doublon, puis l’oublie', async () => {
+    const { listerMoules, memoriserMoule, oublierMoule } = await import('./moules')
+    await memoriserMoule(db, { type: 'rond', diametre: 22 })
+    const m = await memoriserMoule(db, { type: 'rond', diametre: 22 }, 'Moule de mamie')
+    expect(await listerMoules(db)).toEqual([{ id: m.id, nom: 'Moule de mamie', contenant: { type: 'rond', diametre: 22 } }])
+    await expect(memoriserMoule(db, { type: 'cake', longueur: 26 })).rejects.toThrow()
+    await oublierMoule(db, m.id)
+    expect(await listerMoules(db)).toEqual([])
+  })
+})

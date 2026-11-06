@@ -1,12 +1,15 @@
 import { ArrowLeft, ChefHat, Clock, Copy, Flame, Heart, Hourglass, Pencil, Trash, Users } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { AnimatePresence } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import { VisuelRecette } from '../composants/Categorie'
 import Confirmation from '../composants/Confirmation'
 import { useMessage } from '../composants/Messages'
+import BandeauRecalcul from '../composants/BandeauRecalcul'
 import PanneauRecalcul from '../composants/PanneauRecalcul'
 import TexteRiche, { Quantite } from '../composants/TexteRiche'
+import { accorderNom } from '../domaine/accord'
 import { decrireContenant } from '../domaine/contenants'
 import { type Ingredient, LIBELLES_CATEGORIES, LIBELLES_DIFFICULTES, quantiteDeIngredient, type Recette } from '../domaine/modele'
 import { avertissements, calculerRatio, type Cible, recalculerQuantite } from '../domaine/recalcul'
@@ -16,7 +19,16 @@ import { useRecette } from '../donnees/hooks'
 import { usePhoto } from '../donnees/photos'
 import { basculerFavori, dupliquerRecette, noterConsultation, restaurerRecette, supprimerRecette } from '../donnees/recettes'
 
+const cleCible = (id: string) => `quanto.recalcul.${id}`
+
 function cibleInitiale(r: Recette): Cible | null {
+  try {
+    const memorisee = JSON.parse(sessionStorage.getItem(cleCible(r.id)) ?? 'null') as Cible | null
+    if (memorisee?.mode === 'personnes' && r.reference.personnes) return memorisee
+    if (memorisee?.mode === 'contenant' && r.reference.contenant) return memorisee
+  } catch {
+    /* rien de mémorisé */
+  }
   if (r.reference.personnes) return { mode: 'personnes', personnes: r.reference.personnes }
   if (r.reference.contenant) return { mode: 'contenant', contenant: { ...r.reference.contenant } }
   return null
@@ -50,6 +62,24 @@ function Fiche({ r }: { r: Recette }) {
   const afficher = useMessage()
   const photo = usePhoto(r.photoId, 'image')
   const [cible, setCible] = useState<Cible | null>(() => cibleInitiale(r))
+  useEffect(() => {
+    try {
+      if (cible) sessionStorage.setItem(cleCible(r.id), JSON.stringify(cible))
+    } catch {
+      /* stockage indisponible */
+    }
+  }, [cible, r.id])
+
+  // Bandeau de recalcul sur téléphone : visible quand le panneau sort de l'écran.
+  const refPanneau = useRef<HTMLDivElement>(null)
+  const [panneauVisible, setPanneauVisible] = useState(true)
+  useEffect(() => {
+    const el = refPanneau.current
+    if (!el) return
+    const obs = new IntersectionObserver(([e]) => setPanneauVisible(e.isIntersecting), { rootMargin: '-64px 0px 0px 0px' })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
   const [survole, setSurvole] = useState<string | null>(null)
   const [coches, setCoches] = useState<Set<string>>(new Set())
   const [confirmerSuppression, setConfirmerSuppression] = useState(false)
@@ -165,7 +195,9 @@ function Fiche({ r }: { r: Recette }) {
       <div className="lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-6">
         <div className="space-y-6 lg:sticky lg:top-24">
           {cible && (
-            <PanneauRecalcul reference={r.reference} cible={cible} ratio={ratio} onCible={setCible} />
+            <div ref={refPanneau} className="scroll-mt-24">
+              <PanneauRecalcul reference={r.reference} cible={cible} ratio={ratio} onCible={setCible} />
+            </div>
           )}
           {alertes.map((a) => (
             <p key={a} role="status" className="rounded-2xl border border-dore bg-dore-fond px-4 py-3">
@@ -239,6 +271,18 @@ function Fiche({ r }: { r: Recette }) {
         </div>
       </div>
 
+      <AnimatePresence>
+        {cible && !panneauVisible && (
+          <BandeauRecalcul
+            reference={r.reference}
+            cible={cible}
+            ratio={ratio}
+            onCible={setCible}
+            onModifier={() => refPanneau.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          />
+        )}
+      </AnimatePresence>
+
       <Confirmation
         ouvert={confirmerSuppression}
         titre="Mettre à la corbeille ?"
@@ -274,7 +318,7 @@ function LigneIngredient({
         <span className={`flex flex-1 flex-wrap items-baseline gap-x-2 transition ${coche ? 'text-texte-doux line-through opacity-60' : ''}`}>
           <Quantite q={q} />
           <span>
-            {i.nom}
+            {i.unite === 'piece' && q.nombrePieces !== undefined ? accorderNom(i.nom, q.nombrePieces) : i.nom}
             {i.precision && <span className="text-texte-doux">, {i.precision}</span>}
           </span>
           {details.length > 0 && <span className="text-sm text-texte-doux italic">({details.join(' · ')})</span>}
